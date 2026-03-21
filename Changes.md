@@ -57,3 +57,11 @@
 - Added `/api/analyze/critical` and `/api/analyze/summary` endpoints
 - **Tested B1 on `expressjs/express`**: Top 5 scored correctly
 - Commit: `feat(B1+B3): critical file scoring + AI repo summary`
+
+## [2026-03-21T12:00:24+05:30] — Phase 6: Caching + Performance ✅
+- Branch: `feat/caching-v2` (rebased from `bonus-b1-b3` to include all merged features)
+- Created `backend/services/cache.service.js` — T-10: In-memory cache (30 min TTL), 5000-file size limit check
+- Created `backend/routes/preload.routes.js` — `/api/preload` endpoint clones and analyzes 3 demo repos concurrently, caching results. Includes `/api/preload/status` and `/api/preload/clear`.
+- Wired all routes into `backend/index.js` (v0.6.0)
+- **Tested pipeline**: `/api/preload` successfully cached express, fastapi, and realworld repos
+- Commit: `feat(caching): add cache routes, services and preload endpoint`
