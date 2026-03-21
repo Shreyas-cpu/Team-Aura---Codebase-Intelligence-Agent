@@ -220,20 +220,20 @@ async function askCodebase(sessionId, localPath, question) {
   const sources = [...new Set(topChunks.map(c => c.filePath))];
 
   // Gemini RAG prompt
-  const prompt = `You are a senior software engineer explaining a codebase to a new developer.
-Use the following code snippets as context to answer the question. Reference specific file names and line content.
-Be concise but thorough. If the answer isn't in the context, say so.
+  const prompt = `You are a senior codebase intelligence agent analyzing a repository for a developer.
+Use the following extracted code snippets as your exclusive knowledge base context. Reference specific file names and line content strictly based on the context provided.
+CRITICAL INSTRUCTION: Tailor your response length automatically based on the user's question type. If they ask a simple fact or yes/no, give a very simple, effective, and short answer. If they ask for an architectural explanation or deep dive, provide a long, comprehensive, and highly-detailed technical answer.
 
 CONTEXT:
 ${context}
 
 QUESTION: ${question}
 
-Answer in markdown format with code references.`;
+Answer structurally in markdown format with code references where applicable.`;
 
   try {
     const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
+      model: 'gemini-2.5-pro',
       contents: prompt,
       config: { temperature: 0.2 }
     });

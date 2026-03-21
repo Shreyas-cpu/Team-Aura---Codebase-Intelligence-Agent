@@ -157,3 +157,6 @@ commite and pust this current repo
 
 [2026-03-21T18:19:45+05:30]
 merge recent commit into main branch
+
+[2026-03-21T18:53:53+05:30]
+it is showing me same ai unavilable error check if the gemini api key is working, and change to gemini model to Gemini 2.5 Pro, and ask to give simple, effective and short or long answers according to the question asked
