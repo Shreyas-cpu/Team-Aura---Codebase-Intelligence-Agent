@@ -44,6 +44,65 @@ function FolderTree({ folders, topFiles }) {
   );
 }
 
+// Native interactive dependency graph SVG renderer
+function DependencyGraphVis({ nodes, edges }) {
+  const width = 800;
+  const height = 400;
+  const cx = width / 2;
+  const cy = height / 2;
+  const radius = Math.min(cx, cy) - 50;
+
+  const placedNodes = nodes.map((node, i) => {
+    const angle = (i / nodes.length) * 2 * Math.PI;
+    return {
+      ...node,
+      x: cx + radius * Math.cos(angle),
+      y: cy + radius * Math.sin(angle)
+    };
+  });
+
+  return (
+    <svg width="100%" height="100%" viewBox={`0 0 ${width} ${height}`} style={{ position: 'absolute', top: 0, left: 0 }}>
+      {/* Draw edges curving through the center */}
+      {edges.map((edge, i) => {
+        const source = placedNodes.find(n => n.id === edge.source);
+        const target = placedNodes.find(n => n.id === edge.target);
+        if (!source || !target) return null;
+        return (
+          <path
+            key={i}
+            d={`M ${source.x} ${source.y} Q ${cx} ${cy} ${target.x} ${target.y}`}
+            fill="transparent"
+            stroke="rgba(181,123,238,0.15)"
+            strokeWidth={1}
+          />
+        );
+      })}
+      
+      {/* Draw nodes */}
+      {placedNodes.map((node, i) => (
+        <circle
+          key={i}
+          cx={node.x}
+          cy={node.y}
+          r={node.importedByCount > 5 ? 5 : 3}
+          fill={['.h', '.hpp', '.c', '.cpp'].includes(node.extension) ? 'var(--teal)' : 'var(--purple)'}
+          stroke="var(--bg)"
+          strokeWidth={1}
+        >
+          <title>{node.path} (Imported by: {node.importedByCount})</title>
+        </circle>
+      ))}
+      
+      {/* Center Label */}
+      <circle cx={cx} cy={cy} r={30} fill="rgba(181,123,238,0.05)" stroke="rgba(181,123,238,0.2)" strokeWidth={1} />
+      <text x={cx} y={cy + 4} textAnchor="middle" fill="var(--text-dim)" fontSize={11} fontFamily="var(--mono)">
+        {nodes.length} nodes
+      </text>
+    </svg>
+  );
+}
+
 export default function App() {
   const [repoUrl, setRepoUrl] = useState('');
   const [loadingStep, setLoadingStep] = useState(null);
@@ -326,9 +385,14 @@ export default function App() {
             <div style={{ display: 'grid', gridTemplateColumns: 'minmax(240px, 300px) 1fr', gap: 24 }}>
               <div className="card-blue" style={{ padding: 24 }}>
                 <div className="ui-panel-title" style={{color: 'var(--blue)'}}>ENTRY FILE</div>
-                <div className="ui-tree-item" style={{color: '#8ba8c8', fontWeight: 700, fontSize: 13}}>{entryPoint.entryFile}</div>
-                <div className="ui-panel-title" style={{color: 'var(--blue)', marginTop: 24}}>LANGUAGE</div>
-                <div className="ui-tree-item" style={{color: '#8ba8c8', fontSize: 13}}>{entryPoint.language}</div>
+                <div style={{ display: 'inline-block', background: 'rgba(79,163,255,0.1)', border: '1px solid rgba(79,163,255,0.2)', padding: '4px 10px', borderRadius: 4, fontFamily: 'var(--mono)', fontSize: 13, color: '#e2e8f0', fontWeight: 700 }}>
+                  {entryPoint.entryFile}
+                </div>
+                
+                <div className="ui-panel-title" style={{color: 'var(--blue)', marginTop: 28}}>LANGUAGE</div>
+                <div style={{ display: 'inline-block', background: 'rgba(79,163,255,0.1)', border: '1px solid rgba(79,163,255,0.2)', padding: '4px 10px', borderRadius: 4, fontFamily: 'var(--mono)', fontSize: 13, color: '#8ba8c8' }}>
+                  {entryPoint.language}
+                </div>
               </div>
               <div className="card-base">
                 <div className="ui-panel-title" style={{color: 'var(--blue)'}}>▸ EXECUTION CHAIN</div>
@@ -366,7 +430,7 @@ export default function App() {
         return (
           <div className="animate-fade-right" style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 24 }}>
             <h2 style={{ marginBottom: 8 }}>Dependency Graph (M3)</h2>
-            <p className="ui-desc" style={{ marginBottom: 24 }}>Module linkage statistics and broad intelligence brief.</p>
+            <p className="ui-desc" style={{ marginBottom: 24 }}>Module linkage statistics and architectural visualizer.</p>
             
             <div style={{ display: 'grid', gridTemplateColumns: 'minmax(240px, 300px) 1fr', gap: 24 }}>
               <div className="card-purple" style={{ padding: 24 }}>
@@ -377,15 +441,25 @@ export default function App() {
                 <div className="ui-tree-item" style={{marginLeft: 0, paddingLeft: 0, textTransform: 'uppercase', fontSize: 10}}>Nodes Parsed</div>
 
                 <div style={{ fontSize: 36, fontWeight: 800, color: 'var(--text)', marginTop: 32 }}>
-                  {dependencies.links?.length || 0}
+                  {dependencies.edges?.length || 0}
                 </div>
                 <div className="ui-tree-item" style={{marginLeft: 0, paddingLeft: 0, textTransform: 'uppercase', fontSize: 10}}>Graph Edges</div>
-              </div>
-              <div className="card-base">
-                <div className="ui-panel-title" style={{color: '#b57bee'}}>▸ INTELLIGENCE BRIEF</div>
-                <div className="ui-desc" style={{ whiteSpace: 'pre-wrap' }}>
-                  {summary?.content || 'Brief currently unavailable.'}
+
+                <div className="mono" style={{ fontSize: 10, color: '#b57bee', marginTop: 32, opacity: 0.8, lineHeight: 1.6 }}>
+                  {dependencies.capped && "Notice: Graph capped at 100 most connected nodes to maintain visual performance."}
                 </div>
+              </div>
+
+              <div className="card-base" style={{ minHeight: 400, position: 'relative', overflow: 'hidden' }}>
+                <div className="ui-panel-title" style={{color: '#b57bee', position: 'absolute', top: 24, left: 24, zIndex: 10}}>▸ VISUAL DEPENDENCY MAP</div>
+                
+                {(!dependencies.nodes || dependencies.nodes.length === 0) ? (
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: 'var(--text-muted)' }}>
+                    No dependency data available.
+                  </div>
+                ) : (
+                  <DependencyGraphVis nodes={dependencies.nodes} edges={dependencies.edges} />
+                )}
               </div>
             </div>
           </div>

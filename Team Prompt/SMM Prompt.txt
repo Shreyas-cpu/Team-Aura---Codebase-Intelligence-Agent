@@ -178,3 +178,6 @@ try this one test befor doing
 
 [2026-03-21T19:38:43+05:30]
 LANGUAGE in Entry Point (M2) are not appering properly
+
+[2026-03-21T19:42:44+05:30]
+i am not talking about the colour and theme, the languges are not visible on the dash board make it visible clearly as tech stack in the overview tab
