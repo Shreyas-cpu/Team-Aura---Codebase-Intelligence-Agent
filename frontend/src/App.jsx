@@ -66,28 +66,29 @@ export default function App() {
       setStructureData(null); setEntryPoint(null); setDependencies(null); setCriticalFiles(null); setSummary(null);
       
       setLoadingStep('Cloning repository...');
-      await axios.post(`${API_BASE}/clone`, { repoUrl });
+      const { data: cloneData } = await axios.post(`${API_BASE}/clone`, { repoUrl });
+      const localPath = cloneData.repoPath;
 
       setLoadingStep('M1: Analyzing Folder Structure...');
-      const { data: st } = await axios.post(`${API_BASE}/analyze/structure`);
-      setStructureData(st);
+      const { data: st } = await axios.post(`${API_BASE}/analyze/structure`, { localPath });
+      setStructureData(st.data);
 
       setLoadingStep('M2: Detecting Entry Point & Flow...');
-      const { data: ep } = await axios.post(`${API_BASE}/analyze/entrypoint`);
-      setEntryPoint(ep);
+      const { data: ep } = await axios.post(`${API_BASE}/analyze/entrypoint`, { localPath });
+      setEntryPoint(ep.data);
 
       setLoadingStep('M3: Mapping Dependency Graph...');
-      const { data: dep } = await axios.post(`${API_BASE}/analyze/dependencies`);
-      setDependencies(dep);
+      const { data: dep } = await axios.post(`${API_BASE}/analyze/dependencies`, { localPath });
+      setDependencies(dep.data);
 
       setLoadingStep('B1: Scoring Critical Files...');
-      const { data: b1 } = await axios.post(`${API_BASE}/analyze/critical`);
-      setCriticalFiles(b1);
+      const { data: b1 } = await axios.post(`${API_BASE}/analyze/critical`, { localPath });
+      setCriticalFiles(b1.data);
 
       setLoadingStep('B3: Generating AI Summary...');
       try {
-        const { data: sum } = await axios.post(`${API_BASE}/analyze/summary`);
-        setSummary(sum);
+        const { data: sum } = await axios.post(`${API_BASE}/analyze/summary`, { localPath });
+        setSummary(sum.data);
       } catch (e) {
         setSummary({ content: 'Summary generation failed — AI service temporarily unavailable.' });
       }

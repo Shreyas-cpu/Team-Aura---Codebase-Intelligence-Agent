@@ -124,3 +124,6 @@ Continue
 
 [2026-03-21T16:38:12+05:30]
 get the clear ideaof what they are asking as out put for m1, m2, m3 and build the same out, try to make it more good presentable as possible in the image different web pafes for different pages and make it look more better as per your styling,
+
+[2026-03-21T16:54:24+05:30]
+error
