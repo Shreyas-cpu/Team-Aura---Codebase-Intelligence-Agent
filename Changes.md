@@ -26,3 +26,12 @@
 - Created `frontend/README.md` placeholder
 - **Tested**: Cloned `expressjs/express` → 213 files returned in correct tree JSON
 - Commit: `feat(scaffold): monorepo setup, clone + file-tree API`
+
+## [2026-03-21T10:50:53+05:30] — Phase 2: M1 + M2 Core Features ✅
+- Branch: `feat/m1-m2`
+- Installed `@google/genai` for Gemini API integration
+- Created `backend/services/structure.service.js` — T-02 M1: folder analysis with keyword criticality scoring (CRITICAL/IMPORTANT/TEST/META) + Gemini one-line descriptions
+- Created `backend/services/entrypoint.service.js` — T-03 M2: multi-strategy entry point detection (package.json main, scripts.start, root/subdir filename scan) + recursive import chain tracing to depth 4 + Gemini execution flow description
+- Created `backend/routes/analyze.routes.js` — `/api/analyze/structure` and `/api/analyze/entrypoint` endpoints
+- **Tested on `expressjs/express`**: Entry point `index.js` detected via package.json main field, execution chain traced through `lib/express.js → lib/application.js → lib/view.js → lib/request.js → lib/response.js`
+- Commit: `feat(M1): folder analysis engine + Gemini prompt` + `feat(M2): entry point detection + execution chain API`
