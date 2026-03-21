@@ -279,12 +279,29 @@ export default function App() {
               </div>
               <div className="card-base" style={{ maxHeight: '600px', overflowY: 'auto' }}>
                  <div className="ui-panel-title">▸ FOLDER INTELLIGENCE REPORT</div>
-                 {structureData.folders.map((f, i) => (
-                    <div key={i} className="ui-desc">
-                      <span className="hl">{f.path}/</span> &mdash; {f.description}
-                      {f.classification === 'CRITICAL' && <strong style={{ color: '#e2e8f0', marginLeft: 8 }}>Critical zone.</strong>}
-                    </div>
-                 ))}
+                 <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                   {structureData.folders.map((f, i) => (
+                      <div key={i} style={{ 
+                          background: 'var(--bg3)', 
+                          border: f.classification === 'CRITICAL' ? '1px solid rgba(245,166,35,0.3)' : '1px solid var(--border-soft)', 
+                          borderRadius: 8, 
+                          padding: 16 
+                      }}>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                                <FolderGit2 size={16} color={f.classification === 'CRITICAL' ? 'var(--amber)' : 'var(--teal)'} />
+                                <span className="mono" style={{ color: 'var(--text)', fontSize: 13, fontWeight: 700 }}>{f.path}/</span>
+                            </div>
+                            {f.classification === 'CRITICAL' && (
+                                <span style={{ fontSize: 9, padding: '3px 8px', background: 'rgba(245,166,35,0.1)', border: '1px solid rgba(245,166,35,0.2)', borderRadius: 4, fontFamily: 'var(--mono)', color: 'var(--amber)', letterSpacing: '0.05em', fontWeight: 700 }}>
+                                  CRITICAL ZONE
+                                </span>
+                            )}
+                        </div>
+                        <p className="ui-desc" style={{ fontSize: 13, margin: 0, lineHeight: 1.6 }}>{f.description}</p>
+                      </div>
+                   ))}
+                 </div>
               </div>
             </div>
           </div>
