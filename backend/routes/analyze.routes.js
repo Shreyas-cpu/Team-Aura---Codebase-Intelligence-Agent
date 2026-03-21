@@ -3,6 +3,7 @@ const router = express.Router();
 const { analyzeStructure } = require('../services/structure.service');
 const { detectEntryPoint } = require('../services/entrypoint.service');
 const { buildDependencyGraph } = require('../services/dependency.service');
+const { scoreCriticalFiles, generateSummary } = require('../services/bonus.service');
 
 // POST /api/analyze/structure  — M1: Folder structure analysis
 router.post('/structure', async (req, res) => {
@@ -58,6 +59,49 @@ router.post('/dependencies', (req, res) => {
   } catch (err) {
     console.error('[M3] ✗ Error:', err.message);
     return res.status(500).json({ error: 'Dependency graph construction failed.' });
+  }
+});
+
+// POST /api/analyze/critical  — B1: Critical file scoring
+router.post('/critical', (req, res) => {
+  try {
+    const { localPath } = req.body;
+    if (!localPath) {
+      return res.status(400).json({ error: 'localPath is required.' });
+    }
+
+    console.log('[B1] Scoring critical files:', localPath);
+    const graph = buildDependencyGraph(localPath);
+    const result = scoreCriticalFiles(graph);
+    console.log(`[B1] ✓ Top ${result.length} critical files scored`);
+
+    return res.json({ success: true, data: result });
+  } catch (err) {
+    console.error('[B1] ✗ Error:', err.message);
+    return res.status(500).json({ error: 'Critical file scoring failed.' });
+  }
+});
+
+// POST /api/analyze/summary  — B3: AI repository summary
+router.post('/summary', async (req, res) => {
+  try {
+    const { localPath } = req.body;
+    if (!localPath) {
+      return res.status(400).json({ error: 'localPath is required.' });
+    }
+
+    console.log('[B3] Generating summary:', localPath);
+    const folderData = await analyzeStructure(localPath);
+    const entryPoint = await detectEntryPoint(localPath);
+    const graph = buildDependencyGraph(localPath);
+    const criticalFiles = scoreCriticalFiles(graph);
+    const result = await generateSummary(folderData, entryPoint, criticalFiles);
+    console.log(`[B3] ✓ Summary generated`);
+
+    return res.json({ success: true, data: result });
+  } catch (err) {
+    console.error('[B3] ✗ Error:', err.message);
+    return res.status(500).json({ error: 'Summary generation failed.' });
   }
 });
 

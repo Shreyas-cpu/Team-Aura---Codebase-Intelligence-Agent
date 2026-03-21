@@ -42,3 +42,16 @@
 - Added `/api/analyze/dependencies` endpoint to `analyze.routes.js`
 - **Tested on `expressjs/express`**: 100 nodes (capped), 97 edges from 213 source files
 - Commit: `feat(M3): AST dependency graph, JS + Python import extractors`
+
+## [2026-03-21T11:33:46+05:30] — Phase 4: RAG Pipeline / Ask AI ✅
+- Branch: `feat/rag-ask-ai`
+- Created `backend/services/rag.service.js` — chunk → embed → cosine search → Gemini answer
+- Created `backend/routes/chat.routes.js` — `POST /api/chat` endpoint
+- Commit: `feat(rag): codebase chunking, Gemini embeddings + /api/chat endpoint`
+
+## [2026-03-21T11:48:05+05:30] — Phase 5: Bonus B1 + B3 ✅
+- Branch: `feat/bonus-b1-b3`
+- Created `backend/services/bonus.service.js` — B1 critical scoring + B3 AI summary
+- Added `/api/analyze/critical` and `/api/analyze/summary` endpoints
+- **Tested B1 on `expressjs/express`**: Top 5 scored correctly
+- Commit: `feat(B1+B3): critical file scoring + AI repo summary`
