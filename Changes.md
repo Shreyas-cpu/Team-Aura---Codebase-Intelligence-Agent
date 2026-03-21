@@ -45,6 +45,7 @@
 
 ## [2026-03-21T11:33:46+05:30] — Phase 4: RAG Pipeline / Ask AI ✅
 - Branch: `feat/rag-ask-ai`
+<<<<<<< HEAD
 - Created `backend/services/rag.service.js` — T-05: chunk codebase (800 chars, 100 overlap, 500 file cap), Gemini text-embedding-004, cosine similarity search with keyword fallback, Gemini 2.5 Flash answer generation
 - Created `backend/routes/chat.routes.js` — `POST /api/chat` endpoint (sessionId, localPath, message → RAG answer)
 - In-memory session store with auto-indexing on first query
@@ -89,3 +90,6 @@
 - **Bug Fixed (16:54):** Restored the `localPath` API payloads in `App.jsx` `handleAnalyze()` which were mistakenly omitted during the rewrite, causing `M1` analysis 500 errors. Fixed property alias bug `repoPath` -> `localPath`.
 - **Bug Fixed (17:35):** Restored the `{ sessionId, localPath, message }` API payload structure in `App.jsx` `handleChat()` which was accidentally replaced with `{ question }` during the UI rewrite.
 - Commit: `feat(frontend): redesign dashboard to match tabbed layout specification`
+=======
+
+>>>>>>> 2434ea130a6e749ddf753924f501aae6990c74ec

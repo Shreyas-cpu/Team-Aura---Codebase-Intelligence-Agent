@@ -10,7 +10,8 @@ const IGNORE_DIRS = new Set([
 
 const SOURCE_EXTENSIONS = new Set([
   '.js', '.jsx', '.ts', '.tsx', '.mjs', '.cjs',
-  '.py', '.rb', '.go', '.java', '.cs'
+  '.py', '.rb', '.go', '.java', '.cs',
+  '.c', '.cpp', '.h', '.hpp'
 ]);
 
 /**
@@ -47,6 +48,8 @@ function buildDependencyGraph(repoPath) {
       imports = extractImportsTS(filePath);
     } else if (ext === '.py') {
       imports = extractImportsPython(filePath);
+    } else if (['.c', '.cpp', '.h', '.hpp'].includes(ext)) {
+      imports = extractImportsC(filePath);
     }
 
     // Resolve each import to a node
@@ -189,6 +192,20 @@ function extractImportsPython(filePath) {
   return imports;
 }
 
+/**
+ * extractImportsC — regex on local #include statements
+ */
+function extractImportsC(filePath) {
+  const imports = [];
+  try {
+    const code = fs.readFileSync(filePath, 'utf8');
+    const cPattern = /#include\s+["'](.+?)["']/g;
+    let m;
+    while ((m = cPattern.exec(code)) !== null) imports.push(m[1]);
+  } catch (e) { /* unreadable */ }
+  return imports;
+}
+
 // ── Helpers ──
 
 function findRequireCalls(node, imports) {
@@ -218,7 +235,7 @@ function resolveImport(importPath, sourceFile, repoPath) {
   let resolved = path.resolve(sourceDir, importPath);
 
   // Try file extensions
-  const tryExts = ['.js', '.jsx', '.ts', '.tsx', '.mjs', '.cjs', '.py', ''];
+  const tryExts = ['.js', '.jsx', '.ts', '.tsx', '.mjs', '.cjs', '.py', '.c', '.cpp', '.h', '.hpp', ''];
   for (const ext of tryExts) {
     const tryPath = resolved + ext;
     if (fs.existsSync(tryPath) && fs.statSync(tryPath).isFile()) {

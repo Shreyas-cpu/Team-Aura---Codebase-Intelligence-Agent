@@ -9,7 +9,8 @@ const ENTRY_CANDIDATES = [
   'server.js', 'index.js', 'app.js', 'main.js',
   'main.py', 'app.py', 'manage.py', 'run.py',
   'index.ts', 'server.ts', 'app.ts', 'main.ts',
-  'Program.cs', 'Main.java', 'main.go'
+  'Program.cs', 'Main.java', 'main.go',
+  'main.c', 'main.cpp', 'CMakeLists.txt', 'Makefile'
 ];
 
 /**
@@ -20,19 +21,15 @@ async function detectEntryPoint(repoPath) {
   let entryFile = null;
   let entrySource = '';
 
-  // Strategy 1: Check package.json main / scripts.start
+  // ... (Strategy 1: pkg)
   const pkgPath = path.join(repoPath, 'package.json');
   if (fs.existsSync(pkgPath)) {
     try {
       const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf8'));
-
-      // Check "main" field
       if (pkg.main && fs.existsSync(path.join(repoPath, pkg.main))) {
         entryFile = pkg.main;
         entrySource = 'package.json main field';
       }
-
-      // Check scripts.start (e.g. "node server.js")
       if (!entryFile && pkg.scripts && pkg.scripts.start) {
         const startScript = pkg.scripts.start;
         const match = startScript.match(/(?:node|nodemon|ts-node|python)\s+(\S+)/);
@@ -44,7 +41,7 @@ async function detectEntryPoint(repoPath) {
     } catch (e) { /* malformed package.json */ }
   }
 
-  // Strategy 2: Scan root for common entry point filenames
+  // Strategy 2: root files
   if (!entryFile) {
     const rootFiles = fs.readdirSync(repoPath);
     for (const candidate of ENTRY_CANDIDATES) {
@@ -56,9 +53,9 @@ async function detectEntryPoint(repoPath) {
     }
   }
 
-  // Strategy 3: Check common subdirectories (src/, lib/)
+  // Strategy 3: subdirectories
   if (!entryFile) {
-    const subDirs = ['src', 'lib', 'app'];
+    const subDirs = ['src', 'lib', 'app', 'src/nvim'];
     for (const sub of subDirs) {
       const subPath = path.join(repoPath, sub);
       if (fs.existsSync(subPath) && fs.statSync(subPath).isDirectory()) {
@@ -85,20 +82,18 @@ async function detectEntryPoint(repoPath) {
     };
   }
 
-  // Detect language from extension
   const ext = path.extname(entryFile);
   const langMap = {
     '.js': 'JavaScript', '.ts': 'TypeScript', '.jsx': 'JavaScript (React)',
     '.tsx': 'TypeScript (React)', '.py': 'Python', '.java': 'Java',
-    '.cs': 'C#', '.go': 'Go', '.rb': 'Ruby'
+    '.cs': 'C#', '.go': 'Go', '.rb': 'Ruby',
+    '.c': 'C', '.cpp': 'C++', '.txt': 'CMake (Build Script)'
   };
   const language = langMap[ext] || 'Unknown';
 
-  // Build execution chain: follow top-level imports to depth 4
   const entryFullPath = path.join(repoPath, entryFile);
   const executionChain = traceExecutionChain(entryFullPath, repoPath, 0, 4);
 
-  // Gemini prompt: describe execution flow in plain English
   let description = '';
   try {
     const entryContent = fs.readFileSync(entryFullPath, 'utf8');
@@ -136,19 +131,9 @@ Return ONLY a raw JSON array of strings, no markdown, no code fences:
     description = executionChain.map(c => `${c.file}: ${c.action}`);
   }
 
-  return {
-    entryFile,
-    language,
-    detectedBy: entrySource,
-    executionChain,
-    description
-  };
+  return { entryFile, language, detectedBy: entrySource, executionChain, description };
 }
 
-/**
- * traceExecutionChain: follow top-level imports recursively
- * Returns [{file, action, connects_to}]
- */
 function traceExecutionChain(filePath, repoPath, depth, maxDepth) {
   if (depth >= maxDepth || !fs.existsSync(filePath)) return [];
 
@@ -157,32 +142,29 @@ function traceExecutionChain(filePath, repoPath, depth, maxDepth) {
     const content = fs.readFileSync(filePath, 'utf8');
     const relativePath = path.relative(repoPath, filePath).replace(/\\/g, '/');
 
-    // Extract imports (JS: require/import, Python: import/from)
     const ext = path.extname(filePath);
     const imports = [];
 
     if (['.js', '.ts', '.jsx', '.tsx'].includes(ext)) {
-      // ES module imports
       const esMatches = content.matchAll(/import\s+.*?\s+from\s+['"](.+?)['"]/g);
       for (const m of esMatches) imports.push(m[1]);
 
-      // CommonJS requires
       const cjsMatches = content.matchAll(/require\s*\(\s*['"](.+?)['"]\s*\)/g);
       for (const m of cjsMatches) imports.push(m[1]);
     } else if (['.py'].includes(ext)) {
-      // Python imports
       const pyMatches = content.matchAll(/(?:from\s+(\S+)\s+import|import\s+(\S+))/g);
       for (const m of pyMatches) imports.push(m[1] || m[2]);
+    } else if (['.c', '.cpp', '.h', '.hpp'].includes(ext)) {
+      // Local C includes
+      const cMatches = content.matchAll(/#include\s+["'](.+?)["']/g);
+      for (const m of cMatches) imports.push(m[1]);
     }
 
-    // Filter to relative imports only and resolve paths
     for (const imp of imports) {
-      if (!imp.startsWith('.') && !imp.startsWith('/')) continue; // skip node_modules imports
+      if (!imp.startsWith('.') && !imp.startsWith('/') && !['.c', '.cpp'].includes(ext)) continue;
 
       let resolvedPath = path.resolve(path.dirname(filePath), imp);
-
-      // Try to resolve file extension
-      const extensions = ['.js', '.ts', '.jsx', '.tsx', '.py', ''];
+      const extensions = ['.js', '.ts', '.jsx', '.tsx', '.py', '.c', '.cpp', '.h', '.hpp', ''];
       let found = false;
       for (const tryExt of extensions) {
         const tryPath = resolvedPath + tryExt;
@@ -190,14 +172,6 @@ function traceExecutionChain(filePath, repoPath, depth, maxDepth) {
           resolvedPath = tryPath;
           found = true;
           break;
-        }
-      }
-      if (!found) {
-        // Try index.js inside directory
-        const indexPath = path.join(resolvedPath, 'index.js');
-        if (fs.existsSync(indexPath)) {
-          resolvedPath = indexPath;
-          found = true;
         }
       }
       if (!found) continue;
@@ -210,12 +184,10 @@ function traceExecutionChain(filePath, repoPath, depth, maxDepth) {
         connects_to: imp
       });
 
-      // Recurse
       const subChain = traceExecutionChain(resolvedPath, repoPath, depth + 1, maxDepth);
       chain.push(...subChain);
     }
   } catch (e) {
-    /* unreadable file */
   }
 
   return chain;

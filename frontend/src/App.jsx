@@ -12,23 +12,33 @@ function cn(...inputs) {
 
 // recursive folder tree component wrapper
 function FolderTree({ folders, topFiles }) {
+  const sortedFolders = [...(folders || [])].sort((a, b) => a.path.localeCompare(b.path));
+  
   return (
     <div>
-      <div className="ui-tree-folder" style={{ color: 'var(--text)' }}>/ repo_root</div>
-      <div className="ui-tree-indent">
-        {folders?.map(f => (
-          <div key={f.path} className="ui-tree-folder" style={{ color: f.classification === 'CRITICAL' ? 'var(--amber)' : 'var(--teal)' }}>
-            {f.path}/
-          </div>
-        ))}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: 'var(--text)', marginBottom: 12 }}>
+        <FolderGit2 size={16} /> <span className="mono" style={{ fontSize: 13, fontWeight: 700 }}>repo_root/</span>
+      </div>
+      <div style={{ marginLeft: 8, paddingLeft: 16, borderLeft: '1px solid rgba(255,255,255,0.06)' }}>
+        {sortedFolders.map(f => {
+          const depth = (f.path.match(/\//g) || []).length;
+          const name = f.path.split('/').pop() || f.path;
+          return (
+            <div key={f.path} style={{ display: 'flex', alignItems: 'center', gap: 8, marginLeft: depth * 20, marginTop: 10, marginBottom: 10 }}>
+               <FolderGit2 size={14} color={f.classification === 'CRITICAL' ? 'var(--amber)' : 'var(--teal)'} />
+               <span className="mono" style={{ color: f.classification === 'CRITICAL' ? 'var(--amber)' : 'var(--teal)', fontSize: 12, fontWeight: f.classification === 'CRITICAL' ? 700 : 400 }}>
+                 {name}/
+               </span>
+               {f.classification === 'CRITICAL' && <span style={{fontSize: 9, color: 'var(--amber)', opacity: 0.6}}>(critical)</span>}
+            </div>
+          );
+        })}
         {topFiles?.map(f => (
-          <div key={f.path} className="ui-tree-item">
-            {f.path}
+          <div key={f.path} style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 8, marginBottom: 8 }}>
+            <Terminal size={14} color="var(--text-muted)" />
+            <span className="mono" style={{ color: 'var(--text-muted)', fontSize: 12 }}>{f.path}</span>
           </div>
         ))}
-        <div className="ui-tree-item" style={{ color: 'var(--text-dim)' }}>
-           node_modules/ X
-        </div>
       </div>
     </div>
   );

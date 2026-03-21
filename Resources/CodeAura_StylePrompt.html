@@ -1,0 +1,898 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>CodeAura — UI Style Prompt</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --bg: #0a0c10;
+    --bg2: #0f1117;
+    --bg3: #161b24;
+    --card: #12161e;
+    --border: rgba(255,255,255,0.07);
+    --teal: #00e6aa;
+    --amber: #f5a623;
+    --blue: #4fa3ff;
+    --red: #ff5a5a;
+    --purple: #b57bee;
+    --text: #e2e8f0;
+    --text-muted: #6b7894;
+    --text-dim: #3d4a60;
+    --mono: 'Space Mono', monospace;
+    --display: 'Syne', sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--display);
+    line-height: 1.6;
+    overflow-x: hidden;
+  }
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image:
+      linear-gradient(rgba(0,230,170,0.02) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,230,170,0.02) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+  .orb {
+    position: fixed; border-radius: 50%;
+    filter: blur(100px); pointer-events: none; z-index: 0; opacity: 0.2;
+  }
+  .orb-1 { width: 600px; height: 600px; background: #00e6aa; top: -200px; left: -200px; }
+  .orb-2 { width: 400px; height: 400px; background: #f5a623; bottom: 10%; right: -100px; }
+  .orb-3 { width: 300px; height: 300px; background: #4fa3ff; top: 40%; left: 50%; }
+
+  .wrap {
+    position: relative; z-index: 1;
+    max-width: 960px; margin: 0 auto;
+    padding: 0 32px 100px;
+  }
+
+  /* ─── HEADER ─── */
+  .page-header {
+    padding: 60px 0 48px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 0;
+  }
+  .eyebrow {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: rgba(0,230,170,0.08);
+    border: 1px solid rgba(0,230,170,0.25);
+    border-radius: 4px;
+    padding: 4px 10px;
+    font-family: var(--mono); font-size: 11px;
+    color: var(--teal); letter-spacing: 0.08em;
+    margin-bottom: 20px;
+  }
+  .eyebrow::before { content: '▶'; font-size: 8px; }
+  .page-title {
+    font-size: clamp(36px, 6vw, 60px);
+    font-weight: 800; line-height: 1.05;
+    letter-spacing: -0.03em; margin-bottom: 12px;
+  }
+  .page-title .accent { color: var(--teal); }
+  .page-title .dim { color: var(--text-muted); }
+  .page-sub {
+    font-family: var(--mono); font-size: 13px;
+    color: var(--text-muted); letter-spacing: 0.05em; margin-top: 6px;
+  }
+
+  /* ─── SECTION ─── */
+  .section { margin-top: 72px; }
+  .section-label {
+    font-family: var(--mono); font-size: 10px;
+    letter-spacing: 0.18em; color: var(--teal);
+    text-transform: uppercase; margin-bottom: 16px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .section-label::after {
+    content: ''; flex: 1; height: 1px;
+    background: linear-gradient(to right, rgba(0,230,170,0.3), transparent);
+  }
+  h2 {
+    font-size: clamp(20px, 3.5vw, 28px); font-weight: 700;
+    letter-spacing: -0.02em; line-height: 1.2; margin-bottom: 10px;
+  }
+  h3 { font-size: 15px; font-weight: 600; margin-bottom: 6px; }
+  p { font-size: 14px; color: #94a3b8; line-height: 1.8; }
+
+  /* ─── PROMPT BOX ─── */
+  .prompt-box {
+    background: #050709;
+    border: 1px solid rgba(0,230,170,0.15);
+    border-radius: 12px;
+    overflow: hidden;
+    margin-top: 20px;
+  }
+  .prompt-topbar {
+    background: var(--bg3);
+    padding: 10px 18px;
+    display: flex; align-items: center; justify-content: space-between;
+    border-bottom: 1px solid var(--border);
+  }
+  .prompt-label {
+    font-family: var(--mono); font-size: 10px;
+    color: var(--teal); letter-spacing: 0.12em; text-transform: uppercase;
+  }
+  .copy-hint {
+    font-family: var(--mono); font-size: 10px;
+    color: var(--text-dim); letter-spacing: 0.06em;
+  }
+  .prompt-body {
+    padding: 28px 32px;
+    font-family: var(--mono); font-size: 12.5px;
+    line-height: 2.0; color: #c8d8e8;
+    white-space: pre-wrap; word-break: break-word;
+  }
+  .prompt-body .c-teal { color: var(--teal); }
+  .prompt-body .c-amber { color: var(--amber); }
+  .prompt-body .c-blue { color: var(--blue); }
+  .prompt-body .c-red { color: var(--red); }
+  .prompt-body .c-purple { color: var(--purple); }
+  .prompt-body .c-dim { color: #445566; }
+  .prompt-body .c-val { color: #c3e88d; }
+  .prompt-body .c-bold { color: #e2e8f0; font-weight: 700; }
+
+  /* ─── PREVIEW CARDS ─── */
+  .preview-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 14px;
+    margin-top: 20px;
+  }
+  @media(max-width:640px){ .preview-grid { grid-template-columns: 1fr; } }
+  .preview-card {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 12px; padding: 20px;
+    transition: border-color 0.2s;
+  }
+  .preview-card:hover { border-color: rgba(0,230,170,0.2); }
+  .preview-card.teal { border-color: rgba(0,230,170,0.2); background: rgba(0,230,170,0.04); }
+  .preview-card.amber { border-color: rgba(245,166,35,0.2); background: rgba(245,166,35,0.04); }
+  .preview-card.blue { border-color: rgba(79,163,255,0.2); background: rgba(79,163,255,0.04); }
+  .preview-card.red { border-color: rgba(255,90,90,0.2); background: rgba(255,90,90,0.03); }
+  .preview-card-tag {
+    display: inline-block; padding: 2px 8px; border-radius: 4px;
+    font-family: var(--mono); font-size: 9px; font-weight: 700;
+    letter-spacing: 0.08em; margin-bottom: 10px;
+  }
+  .tag-teal { background: rgba(0,230,170,0.12); color: var(--teal); border: 1px solid rgba(0,230,170,0.2); }
+  .tag-amber { background: rgba(245,166,35,0.12); color: var(--amber); border: 1px solid rgba(245,166,35,0.2); }
+  .tag-blue { background: rgba(79,163,255,0.12); color: var(--blue); border: 1px solid rgba(79,163,255,0.2); }
+  .tag-red { background: rgba(255,90,90,0.1); color: var(--red); border: 1px solid rgba(255,90,90,0.2); }
+  .tag-purple { background: rgba(181,123,238,0.12); color: var(--purple); border: 1px solid rgba(181,123,238,0.2); }
+
+  /* ─── SWATCH GRID ─── */
+  .swatch-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 16px; }
+  .swatch {
+    display: flex; flex-direction: column; align-items: center; gap: 6px;
+  }
+  .swatch-dot {
+    width: 44px; height: 44px; border-radius: 8px;
+    border: 1px solid rgba(255,255,255,0.1);
+  }
+  .swatch-name {
+    font-family: var(--mono); font-size: 9px;
+    color: var(--text-muted); text-align: center; line-height: 1.4;
+  }
+
+  /* ─── COMPONENT STRIP ─── */
+  .comp-strip {
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: 12px; padding: 24px;
+    display: flex; flex-wrap: wrap; gap: 16px;
+    align-items: center; margin-top: 16px;
+  }
+  .btn-primary {
+    background: var(--teal); color: #000;
+    border-radius: 6px; padding: 8px 18px;
+    font-family: var(--mono); font-size: 11px; font-weight: 700;
+    letter-spacing: 0.04em;
+  }
+  .btn-ghost {
+    background: transparent; color: var(--text);
+    border: 1px solid var(--border); border-radius: 6px;
+    padding: 8px 18px; font-family: var(--mono); font-size: 11px;
+  }
+  .btn-ghost:hover { border-color: rgba(0,230,170,0.3); color: var(--teal); }
+  .badge-demo {
+    display: inline-flex; align-items: center; gap: 5px;
+    background: rgba(0,230,170,0.08); border: 1px solid rgba(0,230,170,0.2);
+    border-radius: 4px; padding: 3px 9px;
+    font-family: var(--mono); font-size: 10px; color: var(--teal);
+    letter-spacing: 0.06em;
+  }
+  .badge-demo::before { content: '●'; font-size: 7px; animation: pulse 2s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+  .input-demo {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--border); border-radius: 6px;
+    padding: 8px 14px; font-family: var(--mono); font-size: 11px;
+    color: var(--text-muted); width: 220px;
+  }
+  .chip-demo {
+    background: rgba(79,163,255,0.06); border: 1px solid rgba(79,163,255,0.14);
+    border-radius: 20px; padding: 4px 12px;
+    font-family: var(--mono); font-size: 10px; color: #6b7894;
+  }
+  .callout-demo {
+    border-left: 2px solid var(--teal); padding: 12px 16px;
+    background: rgba(0,230,170,0.04); border-radius: 0 8px 8px 0;
+    font-family: var(--mono); font-size: 11px; color: #94a3b8;
+    flex: 1; min-width: 200px;
+  }
+  .callout-demo.amber { border-left-color: var(--amber); background: rgba(245,166,35,0.04); }
+
+  /* ─── TIMELINE PREVIEW ─── */
+  .tl-preview { position: relative; padding-left: 26px; margin-top: 16px; }
+  .tl-preview::before {
+    content: ''; position: absolute; left: 6px; top: 8px; bottom: 8px;
+    width: 1px; background: linear-gradient(to bottom, var(--teal), var(--amber), transparent);
+    opacity: 0.4;
+  }
+  .tl-row { position: relative; margin-bottom: 20px; }
+  .tl-row::before {
+    content: ''; position: absolute; left: -22px; top: 5px;
+    width: 7px; height: 7px; border-radius: 50%;
+    background: var(--teal); box-shadow: 0 0 8px var(--teal);
+  }
+  .tl-row.a::before { background: var(--amber); box-shadow: 0 0 8px var(--amber); }
+  .tl-t { font-family: var(--mono); font-size: 9px; color: var(--teal); letter-spacing: 0.1em; margin-bottom: 2px; }
+  .tl-row.a .tl-t { color: var(--amber); }
+  .tl-ttl { font-size: 13px; font-weight: 600; margin-bottom: 2px; }
+  .tl-d { font-family: var(--mono); font-size: 11px; color: var(--text-muted); line-height: 1.5; }
+
+  /* ─── TERMINAL PREVIEW ─── */
+  .terminal {
+    background: #050709; border: 1px solid var(--border);
+    border-radius: 10px; overflow: hidden; margin-top: 16px;
+  }
+  .term-bar {
+    background: var(--bg3); padding: 9px 14px;
+    display: flex; align-items: center; gap: 7px;
+    border-bottom: 1px solid var(--border);
+  }
+  .dot-r { width: 10px; height: 10px; border-radius: 50%; background: #ff5f57; }
+  .dot-y { width: 10px; height: 10px; border-radius: 50%; background: #febc2e; }
+  .dot-g { width: 10px; height: 10px; border-radius: 50%; background: #28c840; }
+  .term-lbl { font-family: var(--mono); font-size: 10px; color: var(--text-muted); margin-left: 6px; }
+  .term-body {
+    padding: 18px 22px; font-family: var(--mono);
+    font-size: 12px; line-height: 1.9; color: #8ba8c8;
+  }
+
+  /* ─── FOOTER ─── */
+  footer {
+    margin-top: 80px; padding-top: 32px;
+    border-top: 1px solid var(--border);
+    display: flex; justify-content: space-between;
+    align-items: center; flex-wrap: wrap; gap: 12px;
+  }
+  .footer-brand { font-size: 18px; font-weight: 800; letter-spacing: -0.02em; }
+  .footer-brand .accent { color: var(--teal); }
+  .footer-meta { font-family: var(--mono); font-size: 11px; color: var(--text-dim); }
+
+  .divider {
+    height: 1px;
+    background: linear-gradient(to right, transparent, var(--border), transparent);
+    margin: 56px 0;
+  }
+</style>
+</head>
+<body>
+<div class="orb orb-1"></div>
+<div class="orb orb-2"></div>
+<div class="orb orb-3"></div>
+
+<div class="wrap">
+
+  <!-- HEADER -->
+  <div class="page-header">
+    <div class="eyebrow">CODEAURA · UI STYLE SYSTEM · v1.0</div>
+    <h1 class="page-title">
+      Aura<span class="accent">Dark</span><br/>
+      <span class="dim" style="font-size:0.5em;font-weight:600">UI Style Prompt for Coding Agents</span>
+    </h1>
+    <p class="page-sub">// COPY · PASTE · BUILD — drop the prompt block into any AI coding agent</p>
+  </div>
+
+  <!-- ═══ SECTION 01 — THE MASTER PROMPT ═══ -->
+  <div class="section">
+    <div class="section-label">01 — Master Style Prompt</div>
+    <h2>Copy this entire block into your agent</h2>
+    <p>This is the single prompt that encodes the full AuraDark design system. Hand it to any coding agent (Cursor, Copilot, v0, Claude, GPT-4) as a system message or prefix it before your feature request.</p>
+
+    <div class="prompt-box">
+      <div class="prompt-topbar">
+        <span class="prompt-label">▶ AURA DARK — MASTER STYLE PROMPT</span>
+        <span class="copy-hint">select all → copy</span>
+      </div>
+      <div class="prompt-body"><span class="c-dim">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+AURA DARK — UI DESIGN SYSTEM
+Apply this design system to every component and page you build.
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span>
+
+<span class="c-teal">─── IDENTITY ─────────────────────────────────────────────────────────</span>
+<span class="c-bold">Aesthetic:</span>         Dark terminal-meets-developer-dashboard. Professional,
+                   precise, intelligent. Feels like a product built by engineers
+                   who care about craft. NOT generic SaaS purple-gradient dark mode.
+
+<span class="c-bold">Personality:</span>       Technical confidence with visual restraint. Every element
+                   earns its place. Accent colors are signals, not decoration.
+                   Monospace text for data and labels; display font for headings.
+
+<span class="c-teal">─── FONTS ────────────────────────────────────────────────────────────</span>
+<span class="c-amber">Display / Headings:</span>  Syne (Google Fonts) — weights 600, 700, 800
+<span class="c-amber">Monospace / Code:</span>   Space Mono (Google Fonts) — weights 400, 700
+
+Import:
+  https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;
+  0,700;1,400&family=Syne:wght@400;600;700;800&display=swap
+
+CSS variables:
+  --mono: 'Space Mono', monospace;
+  --display: 'Syne', sans-serif;
+
+Rules:
+  • body font-family: var(--display)
+  • ALL data labels, timestamps, tags, code, table headers, tab labels,
+    status text, monospace blocks → font-family: var(--mono)
+  • heading letter-spacing: -0.02em to -0.03em (tight)
+  • mono text letter-spacing: 0.04em to 0.18em (open, depending on size)
+  • NEVER use Inter, Roboto, Arial, or system-ui for this theme
+
+<span class="c-teal">─── COLOR PALETTE ────────────────────────────────────────────────────</span>
+<span class="c-dim">/* Paste these CSS variables into :root {}</span> <span class="c-dim">*/</span>
+
+<span class="c-val">--bg:</span>           <span class="c-amber">#0a0c10</span>   <span class="c-dim">/* page background — near black, slightly blue-tinted */</span>
+<span class="c-val">--bg2:</span>          <span class="c-amber">#0f1117</span>   <span class="c-dim">/* raised surface (sidebars, panels) */</span>
+<span class="c-val">--bg3:</span>          <span class="c-amber">#161b24</span>   <span class="c-dim">/* elevated surface (topbars, modals) */</span>
+<span class="c-val">--card:</span>         <span class="c-amber">#12161e</span>   <span class="c-dim">/* card backgrounds */</span>
+<span class="c-val">--border:</span>       <span class="c-amber">rgba(255,255,255,0.07)</span>  <span class="c-dim">/* default border */</span>
+<span class="c-val">--border-soft:</span>  <span class="c-amber">rgba(255,255,255,0.04)</span>  <span class="c-dim">/* ultra-subtle dividers */</span>
+
+<span class="c-dim">/* Accent palette — each color is an intentional signal */</span>
+<span class="c-val">--teal:</span>         <span class="c-teal">#00e6aa</span>   <span class="c-dim">/* PRIMARY accent — active, success, links, progress */</span>
+<span class="c-val">--teal-dim:</span>     <span class="c-teal">#00b887</span>   <span class="c-dim">/* teal hover / secondary teal */</span>
+<span class="c-val">--amber:</span>        <span class="c-amber">#f5a623</span>   <span class="c-dim">/* WARNING / highlight / alternate emphasis */</span>
+<span class="c-val">--amber-dim:</span>    <span class="c-amber">#c47f10</span>   <span class="c-dim">/* amber hover */</span>
+<span class="c-val">--blue:</span>         <span class="c-blue">#4fa3ff</span>   <span class="c-dim">/* INFO / links / secondary actions */</span>
+<span class="c-val">--red:</span>          <span class="c-red">#ff5a5a</span>   <span class="c-dim">/* ERROR / danger / critical */</span>
+<span class="c-val">--purple:</span>       <span class="c-purple">#b57bee</span>   <span class="c-dim">/* SPECIAL / AI features / premium */</span>
+
+<span class="c-dim">/* Text hierarchy */</span>
+<span class="c-val">--text:</span>         <span class="c-amber">#e2e8f0</span>   <span class="c-dim">/* primary body text */</span>
+<span class="c-val">--text-muted:</span>   <span class="c-amber">#6b7894</span>   <span class="c-dim">/* secondary / supporting text */</span>
+<span class="c-val">--text-dim:</span>     <span class="c-amber">#3d4a60</span>   <span class="c-dim">/* disabled / placeholder / metadata */</span>
+
+Color rules:
+  • Use ONE primary accent per component. Never rainbow multiple accents.
+  • Teal = primary interactive state (buttons, active tabs, progress, links)
+  • Amber = warnings, highlights, alternate sections
+  • Red = errors only. Never decorative.
+  • Blue = informational, AI/chat features, secondary actions
+  • Purple = AI-exclusive features, premium or special capabilities
+  • All accents at 7–15% opacity for backgrounds (e.g. rgba(0,230,170,0.10))
+  • Accent borders always at 20–30% opacity (e.g. rgba(0,230,170,0.25))
+
+<span class="c-teal">─── BACKGROUND ATMOSPHERE ────────────────────────────────────────────</span>
+Add these two effects to every page. They create depth without clutter:
+
+<span class="c-dim">/* 1. Subtle grid — applied via body::before */</span>
+body::before {
+  content: '';
+  position: fixed; inset: 0;
+  background-image:
+    linear-gradient(rgba(0,230,170,0.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,230,170,0.02) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+<span class="c-dim">/* 2. Glow orbs — fixed position, behind all content */</span>
+<span class="c-dim">/* Teal orb: top-left. Amber orb: bottom-right. */</span>
+.orb { position: fixed; border-radius: 50%; filter: blur(100px);
+       pointer-events: none; z-index: 0; opacity: 0.20–0.25; }
+.orb-1 { width:600px; height:600px; background:#00e6aa; top:-200px; left:-200px; }
+.orb-2 { width:400px; height:400px; background:#f5a623; bottom:10%; right:-100px; }
+
+<span class="c-dim">/* Optional third orb for pages with blue/AI features */</span>
+.orb-3 { width:300px; height:300px; background:#4fa3ff; top:40%; left:50%;
+          opacity: 0.10; }
+
+<span class="c-teal">─── LAYOUT ───────────────────────────────────────────────────────────</span>
+• Max content width: 1000–1100px, centered with auto margin
+• Page padding: 0 32px (sides), generous vertical breathing room (64–80px between sections)
+• All content must be position: relative; z-index: 1; to sit above orbs/grid
+• Section spacing: margin-top: 64px between major sections
+• Internal card padding: 20–28px
+
+<span class="c-teal">─── TYPOGRAPHY SCALE ─────────────────────────────────────────────────</span>
+<span class="c-amber">Page title (h1):</span>
+  font-size: clamp(44px, 8vw, 72px); font-weight: 800;
+  letter-spacing: -0.03em; line-height: 1.0;
+  Use .accent span for teal-colored portion of title.
+
+<span class="c-amber">Section heading (h2):</span>
+  font-size: clamp(22px, 4vw, 32px); font-weight: 700;
+  letter-spacing: -0.02em; line-height: 1.2;
+
+<span class="c-amber">Card title (h3):</span>
+  font-size: 15–16px; font-weight: 600;
+
+<span class="c-amber">Body text (p):</span>
+  font-size: 14–15px; color: #94a3b8; line-height: 1.75–1.8;
+
+<span class="c-amber">Section label (eyebrow above h2):</span>
+  font-family: var(--mono); font-size: 10px; letter-spacing: 0.18em;
+  color: var(--teal); text-transform: uppercase;
+  display: flex; align-items: center; gap: 10px;
+  Add a ::after pseudo-element: flex:1; height:1px;
+  background: linear-gradient(to right, rgba(0,230,170,0.3), transparent);
+
+<span class="c-amber">Mono labels (table headers, tab text, timestamps, status):</span>
+  font-family: var(--mono); font-size: 9–11px; letter-spacing: 0.08–0.18em;
+  ALL CAPS for headers; sentence case for descriptive labels.
+
+<span class="c-teal">─── CARDS ────────────────────────────────────────────────────────────</span>
+Base card:
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 12px; padding: 24px;
+  transition: border-color 0.2s;
+  On hover: border-color: rgba(0,230,170,0.2);
+
+Accent variants (add tinted border + background):
+  .card-teal  → border: rgba(0,230,170,0.2)  bg: rgba(0,230,170,0.04)
+  .card-amber → border: rgba(245,166,35,0.2) bg: rgba(245,166,35,0.04)
+  .card-blue  → border: rgba(79,163,255,0.2) bg: rgba(79,163,255,0.04)
+  .card-red   → border: rgba(255,90,90,0.2)  bg: rgba(255,90,90,0.03)
+
+Differentiator card (large ghost number watermark):
+  position: relative; overflow: hidden;
+  ::before { content: attr(data-num); position: absolute;
+    top: -10px; right: 12px; font-size: 80px; font-weight: 800;
+    color: rgba(0,230,170,0.04); font-family: var(--mono); }
+
+<span class="c-teal">─── BUTTONS ──────────────────────────────────────────────────────────</span>
+Primary (teal fill):
+  background: var(--teal); color: #000; border-radius: 6px;
+  padding: 8–10px 18–24px; font-family: var(--mono);
+  font-size: 11–12px; font-weight: 700; letter-spacing: 0.04em;
+  Use for: primary CTA, submit, analyse, send.
+
+Ghost (outlined):
+  background: transparent; color: var(--text);
+  border: 1px solid var(--border); border-radius: 6px;
+  padding: 8px 18px; font-family: var(--mono); font-size: 11px;
+  Hover: border-color: rgba(0,230,170,0.3); color: var(--teal);
+
+Danger:
+  Same as ghost but border: rgba(255,90,90,0.3); color: var(--red);
+
+<span class="c-teal">─── BADGES & TAGS ────────────────────────────────────────────────────</span>
+Status badge (with animated dot):
+  display: inline-flex; align-items: center; gap: 6px;
+  background: rgba(0,230,170,0.08); border: 1px solid rgba(0,230,170,0.25);
+  border-radius: 4px; padding: 4px 10px;
+  font-family: var(--mono); font-size: 11px; color: var(--teal);
+  letter-spacing: 0.08em;
+  ::before { content: '▶'; font-size: 8px; }
+
+Feature tag (small label above card title):
+  padding: 2px 8px; border-radius: 4px;
+  font-family: var(--mono); font-size: 10px; font-weight: 700;
+  letter-spacing: 0.06em; margin-bottom: 10px;
+  Apply accent color background + border.
+
+Chip (filter / suggestion):
+  background: rgba(79,163,255,0.06); border: 1px solid rgba(79,163,255,0.13);
+  border-radius: 20px; padding: 4px 12px;
+  font-family: var(--mono); font-size: 10px; color: #6b7894;
+
+<span class="c-teal">─── INPUTS ───────────────────────────────────────────────────────────</span>
+Text input / URL bar:
+  background: rgba(255,255,255,0.04); border: 1px solid var(--border);
+  border-radius: 6–8px; padding: 8–10px 14px;
+  font-family: var(--mono); font-size: 11–12px; color: var(--text-muted);
+  On focus: border-color: rgba(0,230,170,0.3); outline: none;
+  caret-color: var(--teal);
+
+<span class="c-teal">─── NAVIGATION / TABS ────────────────────────────────────────────────</span>
+Topbar:
+  background: var(--bg3) or #0d1118; border-bottom: 1px solid var(--border);
+  padding: 10–14px 20px; display: flex; align-items: center; gap: 12–16px;
+
+Tab bar:
+  background: #0a0d12; border-bottom: 1px solid var(--border);
+  padding: 0 20px; display: flex;
+
+Tab item:
+  font-family: var(--mono); font-size: 10px; padding: 10px 14px;
+  color: var(--text-muted); border-bottom: 2px solid transparent;
+  letter-spacing: 0.06em; text-transform: uppercase;
+  Active: color: var(--teal); border-bottom-color: var(--teal);
+
+Sidebar tree (file explorer style):
+  font-family: var(--mono); font-size: 11px;
+  Folder labels: color: var(--teal); font-weight: 700;
+  File labels: color: var(--text-muted);
+  Nested items: padding-left: 12px per level;
+
+<span class="c-teal">─── CALLOUT / BLOCKQUOTE ─────────────────────────────────────────────</span>
+border-left: 2px solid var(--teal); padding: 14–16px 20px;
+background: rgba(0,230,170,0.04); border-radius: 0 8px 8px 0;
+margin: 24px 0;
+Amber variant: border-left-color: var(--amber); bg: rgba(245,166,35,0.04);
+Title: font-family: var(--mono); font-size: 11px; color: var(--teal);
+       letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 6px;
+
+<span class="c-teal">─── TERMINAL / CODE BLOCK ────────────────────────────────────────────</span>
+Wrapper:
+  background: #050709; border: 1px solid var(--border);
+  border-radius: 10px; overflow: hidden;
+
+Titlebar (macOS-style):
+  background: var(--bg3); padding: 10px 16px;
+  display: flex; align-items: center; gap: 8px;
+  border-bottom: 1px solid var(--border);
+  Dots: #ff5f57 (red), #febc2e (yellow), #28c840 (green) — 10px circles
+  Label: font-family: var(--mono); font-size: 11px; color: var(--text-muted);
+
+Body:
+  padding: 20px 24px; font-family: var(--mono); font-size: 12px;
+  line-height: 1.9; color: #8ba8c8;
+
+Syntax tokens:
+  paths / keywords:  color: var(--teal)    → #00e6aa
+  operators/arrows:  color: var(--amber)   → #f5a623
+  comments:          color: #445566
+  identifiers:       color: var(--blue)    → #4fa3ff
+  values / strings:  color: #c3e88d
+  errors:            color: var(--red)     → #ff5a5a
+
+<span class="c-teal">─── TIMELINE ─────────────────────────────────────────────────────────</span>
+Wrapper: position: relative; padding-left: 28px;
+Vertical line (::before on wrapper):
+  position: absolute; left: 7px; top: 8px; bottom: 8px; width: 1px;
+  background: linear-gradient(to bottom, var(--teal), var(--amber), transparent);
+  opacity: 0.4;
+
+Timeline item (::before):
+  position: absolute; left: -24px; top: 6px;
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--teal); box-shadow: 0 0 8px var(--teal);
+  Alternate accent: var(--amber) for milestone items.
+
+Timestamp:  font-family: var(--mono); font-size: 10px; color: var(--teal); letter-spacing: 0.1em;
+Title:      font-size: 14px; font-weight: 600; color: var(--text);
+Desc:       font-family: var(--mono); font-size: 13px; color: var(--text-muted); line-height: 1.6;
+
+<span class="c-teal">─── TABLES ───────────────────────────────────────────────────────────</span>
+table: width: 100%; border-collapse: collapse;
+th:  font-family: var(--mono); font-size: 10px; letter-spacing: 0.12em;
+     color: var(--text-muted); text-transform: uppercase; padding: 8px 12px;
+     text-align: left; border-bottom: 1px solid var(--border);
+td:  padding: 10px 12px; font-size: 13px; color: #94a3b8;
+     border-bottom: 1px solid var(--border); vertical-align: top;
+Last row td: border-bottom: none;
+
+Progress bar (inline):
+  display: inline-block; height: 4px; border-radius: 2px;
+  background: var(--teal); opacity: 0.7; margin-left: 8px;
+
+<span class="c-teal">─── ANIMATIONS ───────────────────────────────────────────────────────</span>
+Pulse (live status dot):
+  @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.5;transform:scale(0.7)} }
+  Apply to: status indicators, live badges, progress dots.
+
+Fade-in (content on load / tab switch):
+  @keyframes fadeUp { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+  animation: fadeUp 0.3s ease forwards;
+
+Scan line (loading / analysis state):
+  @keyframes scan { 0%{top:0%} 100%{top:100%} }
+  Overlay a 2px teal line that sweeps top-to-bottom on the loading panel.
+
+Blink cursor (typing indicators):
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+  Use on a 2px wide, 14px tall teal rectangle after input text.
+
+Rules:
+  • Duration: 150–400ms for UI transitions; 1.5–2.5s for ambient loops
+  • Easing: ease or cubic-bezier(0.4, 0, 0.2, 1) for UI; linear for loops
+  • ALWAYS wrap ambient animations in @media (prefers-reduced-motion: no-preference)
+  • No bounce, elastic, or spring animations — too playful for this aesthetic
+
+<span class="c-teal">─── LOADING / SKELETON STATES ────────────────────────────────────────</span>
+Skeleton loader:
+  background: linear-gradient(90deg, var(--bg3) 25%, rgba(255,255,255,0.04) 50%, var(--bg3) 75%);
+  background-size: 200% 100%;
+  @keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
+  animation: shimmer 1.8s ease-in-out infinite;
+  border-radius: 6px; height matches the real content element.
+
+Progress steps:
+  A horizontal bar of labeled steps.
+  Active step: color: var(--teal); dot: filled teal.
+  Completed step: color: var(--teal-dim); dot: checkmark.
+  Pending step: color: var(--text-dim); dot: empty circle.
+
+<span class="c-teal">─── DIVIDERS ─────────────────────────────────────────────────────────</span>
+Section divider:
+  height: 1px; margin: 48–56px 0;
+  background: linear-gradient(to right, transparent, var(--border), transparent);
+
+Accent rule (under section heading):
+  border-bottom: 1px solid var(--border); on the header element itself.
+
+<span class="c-teal">─── CHAT / AI PANEL ──────────────────────────────────────────────────</span>
+Chat wrapper: background: #080b10; border: 1px solid rgba(79,163,255,0.2);
+  border-radius: 16px; overflow: hidden;
+
+Chat header: background: #0d1829; border-bottom: 1px solid rgba(79,163,255,0.15);
+  padding: 14px 20px; display: flex; align-items: center; gap: 12px;
+  Avatar: 34px circle; background: rgba(79,163,255,0.15); border: 1px solid rgba(79,163,255,0.3);
+
+Message bubble — AI:
+  background: rgba(79,163,255,0.07); border: 1px solid rgba(79,163,255,0.14);
+  border-radius: 4px 12px 12px 12px; padding: 10px 14px;
+  font-family: var(--mono); font-size: 12px; color: #94a3b8;
+
+Message bubble — User:
+  background: rgba(0,230,170,0.07); border: 1px solid rgba(0,230,170,0.14);
+  border-radius: 12px 4px 12px 12px; padding: 10px 14px;
+  font-family: var(--mono); font-size: 12px; color: var(--teal);
+
+Inline file reference pill:
+  background: rgba(79,163,255,0.12); border: 1px solid rgba(79,163,255,0.2);
+  border-radius: 3px; padding: 1px 6px; font-size: 10px; color: var(--blue);
+
+Floating bot trigger button:
+  position: fixed; bottom: 24px; right: 24px; z-index: 999;
+  width: 52px; height: 52px; border-radius: 50%;
+  background: var(--teal); color: #000; font-size: 22px;
+  box-shadow: 0 0 24px rgba(0,230,170,0.4);
+  animation: pulse 3s ease-in-out infinite;
+
+<span class="c-teal">─── DO NOT ───────────────────────────────────────────────────────────</span>
+<span class="c-red">✗</span> No white or light backgrounds anywhere
+<span class="c-red">✗</span> No purple gradients — that's generic AI dark mode, not this theme
+<span class="c-red">✗</span> No drop-shadows or glow effects on cards (only on status dots)
+<span class="c-red">✗</span> No Inter, Roboto, system-ui, or sans-serif fallback as primary font
+<span class="c-red">✗</span> No rounded pill buttons (use border-radius: 6–8px, not 24px)
+<span class="c-red">✗</span> No gradient fills on cards or backgrounds (solid dark fills only)
+<span class="c-red">✗</span> No bright colored text on white/light backgrounds
+<span class="c-red">✗</span> No accent color overuse — max 2 accent colors per screen at once
+<span class="c-red">✗</span> No heavy font weights (800+) below 20px — use 600 at small sizes
+<span class="c-red">✗</span> No multiple animation types running simultaneously on the same element
+
+<span class="c-teal">─── GRID UTILITIES ───────────────────────────────────────────────────</span>
+.grid-2: display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
+.grid-3: display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;
+.grid-4: display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px;
+All collapse to 1fr on max-width: 640px.
+
+<span class="c-teal">─── FOOTER ───────────────────────────────────────────────────────────</span>
+border-top: 1px solid var(--border); margin-top: 80px; padding-top: 32px;
+display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;
+Brand name: font-size: 20px; font-weight: 800; accent span colored var(--teal);
+Meta text: font-family: var(--mono); font-size: 11px; color: var(--text-dim);
+
+<span class="c-dim">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+END OF AURA DARK STYLE SYSTEM
+Use this as a living design token reference. When in doubt: dark, mono, teal.
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span></div>
+    </div>
+  </div>
+
+  <!-- ═══ SECTION 02 — COLOR SWATCHES ═══ -->
+  <div class="section">
+    <div class="section-label">02 — Color Reference</div>
+    <h2>The accent palette</h2>
+    <p>Each color is a <em>signal</em>, not a decoration. Apply them with intention.</p>
+    <div class="swatch-row">
+      <div class="swatch">
+        <div class="swatch-dot" style="background:#00e6aa;border-color:rgba(0,230,170,0.4)"></div>
+        <div class="swatch-name">--teal<br/>#00e6aa<br/>Primary</div>
+      </div>
+      <div class="swatch">
+        <div class="swatch-dot" style="background:#00b887;border-color:rgba(0,184,135,0.4)"></div>
+        <div class="swatch-name">--teal-dim<br/>#00b887<br/>Hover</div>
+      </div>
+      <div class="swatch">
+        <div class="swatch-dot" style="background:#f5a623;border-color:rgba(245,166,35,0.4)"></div>
+        <div class="swatch-name">--amber<br/>#f5a623<br/>Warning</div>
+      </div>
+      <div class="swatch">
+        <div class="swatch-dot" style="background:#4fa3ff;border-color:rgba(79,163,255,0.4)"></div>
+        <div class="swatch-name">--blue<br/>#4fa3ff<br/>Info / AI</div>
+      </div>
+      <div class="swatch">
+        <div class="swatch-dot" style="background:#ff5a5a;border-color:rgba(255,90,90,0.4)"></div>
+        <div class="swatch-name">--red<br/>#ff5a5a<br/>Error</div>
+      </div>
+      <div class="swatch">
+        <div class="swatch-dot" style="background:#b57bee;border-color:rgba(181,123,238,0.4)"></div>
+        <div class="swatch-name">--purple<br/>#b57bee<br/>Special</div>
+      </div>
+      <div class="swatch">
+        <div class="swatch-dot" style="background:#0a0c10;border-color:rgba(255,255,255,0.15)"></div>
+        <div class="swatch-name">--bg<br/>#0a0c10<br/>Page BG</div>
+      </div>
+      <div class="swatch">
+        <div class="swatch-dot" style="background:#12161e;border-color:rgba(255,255,255,0.12)"></div>
+        <div class="swatch-name">--card<br/>#12161e<br/>Cards</div>
+      </div>
+      <div class="swatch">
+        <div class="swatch-dot" style="background:#161b24;border-color:rgba(255,255,255,0.12)"></div>
+        <div class="swatch-name">--bg3<br/>#161b24<br/>Surfaces</div>
+      </div>
+      <div class="swatch">
+        <div class="swatch-dot" style="background:#e2e8f0;border-color:rgba(255,255,255,0.3)"></div>
+        <div class="swatch-name">--text<br/>#e2e8f0<br/>Primary</div>
+      </div>
+      <div class="swatch">
+        <div class="swatch-dot" style="background:#6b7894;border-color:rgba(255,255,255,0.15)"></div>
+        <div class="swatch-name">--muted<br/>#6b7894<br/>Secondary</div>
+      </div>
+      <div class="swatch">
+        <div class="swatch-dot" style="background:#3d4a60;border-color:rgba(255,255,255,0.1)"></div>
+        <div class="swatch-name">--dim<br/>#3d4a60<br/>Disabled</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ SECTION 03 — LIVE COMPONENTS ═══ -->
+  <div class="section">
+    <div class="section-label">03 — Component Preview</div>
+    <h2>Buttons, inputs, badges &amp; chips</h2>
+    <p>Every interactive element follows the same rules: mono font, measured radius, intentional accent.</p>
+    <div class="comp-strip">
+      <button class="btn-primary">ANALYSE →</button>
+      <button class="btn-ghost">View Report</button>
+      <div class="badge-demo">LIVE · v2.0</div>
+      <input class="input-demo" placeholder="https://github.com/your-repo" readonly/>
+      <div class="chip-demo">Where is auth?</div>
+      <div class="chip-demo">Show entry point</div>
+    </div>
+    <div class="comp-strip" style="margin-top:10px">
+      <div class="callout-demo"><strong style="color:var(--teal)">STRATEGY NOTE</strong><br/>Teal callout — use for tips, highlights, and key takeaways.</div>
+      <div class="callout-demo amber"><strong style="color:var(--amber)">PRIORITY RULE</strong><br/>Amber callout — use for warnings, caveats, and time-sensitive notes.</div>
+    </div>
+  </div>
+
+  <!-- ═══ SECTION 04 — TAGS REFERENCE ═══ -->
+  <div class="section">
+    <div class="section-label">04 — Tags & Card Variants</div>
+    <h2>Feature labels and card accents</h2>
+    <div class="preview-grid" style="margin-top:20px">
+      <div class="preview-card teal">
+        <div class="preview-card-tag tag-teal">M1 · MANDATORY</div>
+        <h3>Teal Card</h3>
+        <p>Use for primary features, active states, confirmed data, successful outcomes. The default accent — most used.</p>
+      </div>
+      <div class="preview-card amber">
+        <div class="preview-card-tag tag-amber">B1 · BONUS</div>
+        <h3>Amber Card</h3>
+        <p>Use for warnings, bonus features, alternate sections, or priority callouts that need visual separation.</p>
+      </div>
+      <div class="preview-card blue">
+        <div class="preview-card-tag tag-blue">◈ AI FEATURE</div>
+        <h3>Blue Card</h3>
+        <p>Use exclusively for AI-powered features, informational panels, chatbot UI, and RAG-related components.</p>
+      </div>
+      <div class="preview-card red">
+        <div class="preview-card-tag tag-red">🔴 CRITICAL</div>
+        <h3>Red Card</h3>
+        <p>Use for errors, blocked states, critical warnings, and risk flags. Never use decoratively.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ SECTION 05 — TIMELINE PREVIEW ═══ -->
+  <div class="section">
+    <div class="section-label">05 — Timeline Component</div>
+    <h2>Sprint and execution timelines</h2>
+    <p>Alternate teal and amber nodes. Gradient line flows from teal (start) to amber (critical) to transparent (done).</p>
+    <div class="tl-preview">
+      <div class="tl-row">
+        <div class="tl-t">HOUR 0–1</div>
+        <div class="tl-ttl">Project Scaffold</div>
+        <div class="tl-d">Monorepo setup, Express backend, Vite React frontend, GitHub clone pipeline tested.</div>
+      </div>
+      <div class="tl-row a">
+        <div class="tl-t">HOUR 1–3</div>
+        <div class="tl-ttl">M1 + M2 Core Logic</div>
+        <div class="tl-d">Directory walker, entry point heuristics, Gemini API folder analysis, wire to frontend.</div>
+      </div>
+      <div class="tl-row">
+        <div class="tl-t">HOUR 3–5</div>
+        <div class="tl-ttl">M3 Dependency Graph</div>
+        <div class="tl-d">AST import extraction (JS + Python), adjacency list, D3.js force graph with click-highlight.</div>
+      </div>
+      <div class="tl-row a">
+        <div class="tl-t">HOUR 5–7</div>
+        <div class="tl-ttl">RAG Pipeline + Ask AI</div>
+        <div class="tl-d">Chunk → embed → vector search → Gemini answer. Chat UI tab with suggested question chips.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ SECTION 06 — TERMINAL PREVIEW ═══ -->
+  <div class="section">
+    <div class="section-label">06 — Terminal Block</div>
+    <h2>Output and code display</h2>
+    <p>All CLI output, analysis results, and code snippets use this macOS-style terminal block with syntax-colored spans.</p>
+    <div class="terminal">
+      <div class="term-bar">
+        <div class="dot-r"></div><div class="dot-y"></div><div class="dot-g"></div>
+        <span class="term-lbl">codeaura — sandbox report · expressjs/express</span>
+      </div>
+      <div class="term-body">
+        <span style="color:#445566"># ── SANDBOX HEALTH REPORT ─────────────────────</span><br/>
+        <span style="color:var(--blue)">Stage 1 · Intake</span>     <span style="color:var(--teal)">PASS</span>  <span style="color:#445566">// 156 files · 1.8MB · cloned in 1.3s</span><br/>
+        <span style="color:var(--blue)">Stage 2 · Sanitise</span>   <span style="color:var(--teal)">PASS</span>  <span style="color:#445566">// 0 binary blobs · node_modules stripped</span><br/>
+        <span style="color:var(--blue)">Stage 3 · Dry-Run</span>    <span style="color:var(--teal)">PASS</span>  <span style="color:#445566">// JS detected (94%) · 5/5 files parsed</span><br/>
+        <span style="color:var(--blue)">Stage 4 · Verdict</span>    <span style="color:var(--teal)">⬡ GREEN — proceeding to full analysis</span><br/><br/>
+        <span style="color:#445566"># ── ENTRY POINT ───────────────────────────────</span><br/>
+        <span style="color:var(--blue)">Entry:</span>  <span style="color:#c3e88d">index.js</span><br/>
+        <span style="color:#8ba8c8">  index.js</span><br/>
+        <span style="color:var(--amber)">  └─►</span> <span style="color:#8ba8c8">lib/express.js</span>   <span style="color:#445566">// app factory</span><br/>
+        <span style="color:var(--amber)">     └─►</span> <span style="color:#8ba8c8">lib/application.js</span> <span style="color:#445566">// mounts routing</span><br/>
+        <span style="color:var(--amber)">        └─►</span> <span style="color:var(--teal)">Server ready → PORT 3000</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ SECTION 07 — QUICK CHEAT SHEET ═══ -->
+  <div class="section">
+    <div class="section-label">07 — Agent Cheat Sheet</div>
+    <h2>One-line reminders for your coding agent</h2>
+    <p>Append these as bullet constraints at the end of any feature prompt to keep the agent on-theme.</p>
+    <div class="prompt-box" style="margin-top:20px">
+      <div class="prompt-topbar">
+        <span class="prompt-label">▶ QUICK CONSTRAINTS — APPEND TO FEATURE PROMPTS</span>
+        <span class="copy-hint">copy and append</span>
+      </div>
+      <div class="prompt-body"><span class="c-teal">Design constraints to apply to the component above:</span>
+
+<span class="c-amber">Fonts:</span>       Syne for display text, Space Mono for all labels, code, and data.
+<span class="c-amber">Background:</span>  #0a0c10 page bg, #12161e cards, #161b24 elevated surfaces.
+<span class="c-amber">Accent:</span>      Teal (#00e6aa) primary, Amber (#f5a623) warning, Blue (#4fa3ff) AI/info.
+<span class="c-amber">Borders:</span>     rgba(255,255,255,0.07) default. Accent borders at 20–25% opacity.
+<span class="c-amber">Cards:</span>       border-radius 12px, 24px padding, teal hover border.
+<span class="c-amber">Buttons:</span>     Teal fill primary, border-radius 6px, mono font, weight 700.
+<span class="c-amber">Tags:</span>        Mono font, 10px, ALL CAPS, accent-colored background at 12% opacity.
+<span class="c-amber">Body text:</span>   #94a3b8 for supporting text, #e2e8f0 for primary text.
+<span class="c-amber">No:</span>          White backgrounds, purple gradients, Inter/Roboto, drop shadows on cards,
+             pill-shaped buttons (>8px radius), rainbow accent overuse.
+<span class="c-amber">Atmosphere:</span> Add a fixed teal grid overlay (body::before) and two blurred color orbs.
+<span class="c-amber">Animation:</span>  Fade-up on load (300ms), pulse on live status dots (2s loop). Nothing bouncy.
+<span class="c-amber">Terminals:</span>  macOS-style dot bar, #050709 bg, monospace body, teal/amber/blue/green tokens.
+<span class="c-amber">Sections:</span>   Mono eyebrow label (10px, 0.18em tracking, teal) + gradient rule after.</div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <footer>
+    <div>
+      <div class="footer-brand">Aura<span class="accent">Dark</span></div>
+      <div class="footer-meta" style="margin-top:4px">UI Style System · Team Aura · 2025</div>
+    </div>
+    <div style="text-align:right">
+      <div class="footer-meta">CodeAura · Hackathon Edition</div>
+      <div class="footer-meta" style="color:var(--teal);margin-top:4px">Copy. Paste. Ship.</div>
+    </div>
+  </footer>
+
+</div>
+</body>
+</html>
