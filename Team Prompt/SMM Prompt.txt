@@ -163,3 +163,7 @@ merge recent commit into main branch
 it is showing me same ai unavilable error check if the gemini api key is working, and change to gemini model to Gemini 2.5 Pro, and ask to give simple, effective and short or long answers according to the question asked
 =======
 >>>>>>> 2434ea130a6e749ddf753924f501aae6990c74ec
+
+[2026-03-21T19:00:22+05:30]
+AIzaSyBDSjV9_hCr3R8jjGC4l5Or8lEUkPdQV3M
+new and fresh api key
