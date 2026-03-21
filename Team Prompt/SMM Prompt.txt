@@ -167,3 +167,7 @@ it is showing me same ai unavilable error check if the gemini api key is working
 [2026-03-21T19:00:22+05:30]
 AIzaSyBDSjV9_hCr3R8jjGC4l5Or8lEUkPdQV3M
 new and fresh api key
+
+[2026-03-21T19:07:43+05:30]
+AI service is temporarily unavailable. Please try again.
+still
