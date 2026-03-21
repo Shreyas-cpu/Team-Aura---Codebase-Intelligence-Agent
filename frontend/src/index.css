@@ -225,3 +225,91 @@ h1, h2, h3, h4, h5, h6 {
 ::-webkit-scrollbar-thumb:hover {
   background: rgba(255,255,255,0.2);
 }
+
+/* ---- UI MOCKUP DASHBOARD CLASSES ---- */
+.ui-mockup {
+  background: #080b10;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  margin-top: 20px;
+  min-height: 500px;
+}
+.ui-topbar {
+  background: #0d1118;
+  border-bottom: 1px solid var(--border);
+  padding: 10px 20px;
+  display: flex; align-items: center; gap: 12px;
+}
+.ui-topbar-logo { font-size: 16px; font-weight: 800; color: var(--teal); display: flex; align-items: center; gap: 8px; }
+.ui-topbar-input {
+  flex: 1;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 8px 16px;
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text);
+  outline: none;
+}
+.ui-topbar-input:focus { border-color: var(--teal); }
+.ui-topbar-btn {
+  background: var(--teal);
+  color: #000;
+  border: none;
+  border-radius: 6px;
+  padding: 8px 16px;
+  font-size: 11px;
+  font-weight: 800;
+  font-family: var(--mono);
+  cursor: pointer;
+}
+.ui-topbar-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.ui-tabs {
+  display: flex;
+  background: #0a0d12;
+  border-bottom: 1px solid var(--border);
+  padding: 0 20px;
+  overflow-x: auto;
+}
+.ui-tab {
+  font-family: var(--mono);
+  font-size: 10px;
+  padding: 14px 16px;
+  color: var(--text-muted);
+  border-bottom: 2px solid transparent;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.ui-tab:hover { color: var(--text); }
+.ui-tab.active { color: var(--teal); border-bottom-color: var(--teal); }
+
+.ui-body { display: grid; grid-template-columns: 240px 1fr; min-height: 480px;}
+@media(max-width: 768px) { .ui-body { grid-template-columns: 1fr; } }
+.ui-sidebar {
+  border-right: 1px solid var(--border);
+  padding: 20px 16px;
+  font-family: var(--mono);
+  font-size: 11px;
+  background: #080a0e;
+  overflow-y: auto;
+}
+.ui-tree-item { padding: 4px 6px; color: var(--text-muted); }
+.ui-tree-folder { color: var(--teal); font-weight: 700; padding: 4px 6px; }
+.ui-tree-indent { padding-left: 16px; border-left: 1px dashed rgba(255,255,255,0.05); margin-left: 6px; margin-top: 4px;}
+
+.ui-main { padding: 24px; overflow-y: auto; }
+.ui-panel-title {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--teal);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-bottom: 16px;
+}
+.ui-desc { font-size: 14px; color: #94a3b8; line-height: 1.8; margin-bottom: 12px;}
+.ui-desc .hl { color: var(--amber); font-family: var(--mono); font-size: 13px;}

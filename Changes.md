@@ -80,3 +80,10 @@
 - **Bug Fixed**: `backend/index.js` — Moved `dotenv.config()` to execute before route imports, ensuring the Gemini API key securely loads for the AI features (B3 summaries and RAG chat).
 - Removed default placeholder link from the UI input box.
 - Commit: `fix(backend/frontend): load dotenv properly, remove default repo link`
+
+## [2026-03-21T16:38:12+05:30] — Phase 8: Tabbed Dashboard Redesign ✅
+- **UI Architecture Rewrite:** Refactored `App.jsx` from a single scrolling feed into a modular, tabbed application.
+- Developed specific layouts for `M1`, `M2`, `M3`, `B1`, and `ASK AI`.
+- Designed the Sidebar + Main Layout grid mapping directly to the `team_aura_solution.html` aesthetic wireframe.
+- Added extensive UI utility classes (`.ui-mockup`, `.ui-topbar`, `.ui-tabs`, `.ui-sidebar`) into `index.css`.
+- Commit: `feat(frontend): redesign dashboard to match tabbed layout specification`
