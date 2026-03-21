@@ -142,3 +142,12 @@ test and run, and tell me how to do it
 
 [2026-03-21T17:35:25+05:30]
 same check logs
+
+[2026-03-21T17:46:07+05:30]
+still i am facing the same error with chatting with ai
+before this conversion wvert thing was working fine check for logs and test it once in your brouser interface after u successfully remove the error and make it run successfully theritocally....
+and dont forget to log this prompts in prompt.txt
+
+[2026-03-21T17:54:51+05:30]
+AIzaSyAY2FIWQhPvJOilsyjxuJKv4s3b1JBI7wM
+this  in new api key of Gemini, update this...
