@@ -45,8 +45,4 @@
 
 ## [2026-03-21T11:33:46+05:30] — Phase 4: RAG Pipeline / Ask AI ✅
 - Branch: `feat/rag-ask-ai`
-- Created `backend/services/rag.service.js` — T-05: chunk codebase (800 chars, 100 overlap, 500 file cap), Gemini text-embedding-004, cosine similarity search with keyword fallback, Gemini 2.5 Flash answer generation
-- Created `backend/routes/chat.routes.js` — `POST /api/chat` endpoint (sessionId, localPath, message → RAG answer)
-- In-memory session store with auto-indexing on first query
-- **Tested pipeline**: Clone → chunk → search → answer (Gemini requires valid API key for full end-to-end)
-- Commit: `feat(rag): codebase chunking, Gemini embeddings + /api/chat endpoint`
+
