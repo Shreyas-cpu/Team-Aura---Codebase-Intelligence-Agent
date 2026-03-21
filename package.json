@@ -1,0 +1,14 @@
+{
+  "name": "codeaura",
+  "version": "1.0.0",
+  "description": "CodeAura — AI-Powered Codebase Intelligence Agent by Team Aura",
+  "private": true,
+  "scripts": {
+    "dev:backend": "cd backend && npm run dev",
+    "dev:frontend": "cd frontend && npm run dev",
+    "install:all": "cd backend && npm install && cd ../frontend && npm install"
+  },
+  "keywords": ["codebase", "intelligence", "ai", "gemini", "hackathon"],
+  "author": "Team Aura",
+  "license": "MIT"
+}

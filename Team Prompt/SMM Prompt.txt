@@ -33,3 +33,6 @@ yes start with phase 0 and ask when done and procedding to nex one
 
 [2026-03-21T10:29:31+05:30]
 https://github.com/Shreyas-cpu/Team-Aura---Codebase-Intelligence-Agent.git
+
+[2026-03-21T10:32:52+05:30]
+yes do start

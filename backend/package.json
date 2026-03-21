@@ -1,0 +1,24 @@
+{
+  "name": "codeaura-backend",
+  "version": "1.0.0",
+  "description": "CodeAura Backend — Express API for codebase intelligence",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "nodemon index.js"
+  },
+  "keywords": ["codeaura", "backend"],
+  "author": "Team Aura",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "acorn": "^8.16.0",
+    "cors": "^2.8.6",
+    "dotenv": "^17.3.1",
+    "express": "^5.2.1",
+    "simple-git": "^3.33.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.14"
+  }
+}
