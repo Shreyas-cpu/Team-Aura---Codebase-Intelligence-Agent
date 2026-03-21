@@ -110,3 +110,8 @@ now chwck the complete system for tis functionality and if it is working accordi
 add me this frountend to this project, and make some changes like
 -react based frountend
 -make the theme in the style of this web page...
+[2026-03-21T13:28:51+05:30]
+the AI service is unavailable check and fix
+
+[2026-03-21T13:44:59+05:30]
+okkay it is working, remove the default link in the box and teel me when u are ready to update its ui, and u are not logging the prompts and changes in the files, do it

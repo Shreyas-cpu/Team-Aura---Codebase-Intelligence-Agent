@@ -5,7 +5,7 @@ import { Terminal, FolderTree, Code2, Cpu, Zap, Search, AlertCircle, MessageSqua
 const API_BASE = 'http://localhost:3001/api';
 
 export default function App() {
-  const [repoUrl, setRepoUrl] = useState('https://github.com/expressjs/express');
+  const [repoUrl, setRepoUrl] = useState('');
   const [loadingStep, setLoadingStep] = useState(null);
   const [error, setError] = useState(null);
 

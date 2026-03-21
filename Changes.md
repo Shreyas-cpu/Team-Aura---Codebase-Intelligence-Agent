@@ -65,3 +65,18 @@
 - Wired all routes into `backend/index.js` (v0.6.0)
 - **Tested pipeline**: `/api/preload` successfully cached express, fastapi, and realworld repos
 - Commit: `feat(caching): add cache routes, services and preload endpoint`
+
+## [2026-03-21T12:59:42+05:30] — Phase 7: Frontend Application UI ✅
+- Branch: `feat/frontend-ui`
+- Removed placeholder frontend folder and scaffolded React using Vite without Tailwind (to abide by strict custom CSS design system rules).
+- Instantly installed dependencies (`lucide-react`, `axios`).
+- Transcribed the `AuraDark` design system from `CodeAura_StylePrompt.html` carefully into `frontend/src/index.css`, capturing all CSS variables, typography, glow Orbs, grid backgrounds, and utility classes flawlessly.
+- Rewrote `frontend/src/App.jsx` to be a beautiful dashboard layout integrating M1, M2, M3, B1, B3, and conversational RAG features.
+- Wired frontend API calls to `http://localhost:3001/api`.
+- Verified compilation using `npm run dev`.
+- Commit: `feat(frontend): scaffold React Vite app with AuraDark UI system`
+
+## [2026-03-21T13:28:51+05:30] — Phase 7: Hotfix & Cleanup ✅
+- **Bug Fixed**: `backend/index.js` — Moved `dotenv.config()` to execute before route imports, ensuring the Gemini API key securely loads for the AI features (B3 summaries and RAG chat).
+- Removed default placeholder link from the UI input box.
+- Commit: `fix(backend/frontend): load dotenv properly, remove default repo link`
