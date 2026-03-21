@@ -70,6 +70,7 @@ export default function App() {
       setStructureData(null); setEntryPoint(null); setDependencies(null); setCriticalFiles(null); setSummary(null);
       
       setLoadingStep('Cloning repository...');
+      setCurrentView('SUMMARY');
       const { data: cloneData } = await axios.post(`${API_BASE}/clone`, { repoUrl });
       const localPath = cloneData.localPath;
       const sessionId = cloneData.sessionId;
@@ -128,10 +129,35 @@ export default function App() {
 
   const renderContent = () => {
     if (loadingStep) {
+      let perc = 10;
+      if (loadingStep.includes('M1')) perc = 30;
+      else if (loadingStep.includes('M2')) perc = 50;
+      else if (loadingStep.includes('M3')) perc = 70;
+      else if (loadingStep.includes('B1')) perc = 85;
+      else if (loadingStep.includes('B3')) perc = 95;
+
       return (
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: 400 }}>
-          <div className="dot" style={{ display: 'inline-block', width: 12, height: 12, background: 'var(--teal)', borderRadius: '50%', animation: 'pulse 1s infinite' }}></div>
-          <div className="mono" style={{ color: 'var(--teal)', fontSize: 13, marginTop: 24, letterSpacing: '0.1em' }}>{loadingStep}</div>
+        <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 400 }}>
+          <div className="card-base" style={{ width: '100%', maxWidth: 460, position: 'relative', overflow: 'hidden' }}>
+            <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 2, background: 'var(--teal)', animation: 'scan 2s linear infinite', opacity: 0.5 }} />
+            
+            <div className="ui-panel-title" style={{ color: 'var(--teal)', marginBottom: 24, display: 'flex', alignItems: 'center', gap: 10 }}>
+              <Terminal size={14} /> INTELLIGENCE EXTRACTION
+            </div>
+            
+            <div className="mono" style={{ fontSize: 12, color: 'var(--text)', marginBottom: 16, display: 'flex', justifyContent: 'space-between' }}>
+              <span>{loadingStep}</span>
+              <span style={{ color: 'var(--teal)' }}>{perc}%</span>
+            </div>
+            
+            <div style={{ width: '100%', height: 6, background: 'rgba(255,255,255,0.05)', borderRadius: 3, overflow: 'hidden', position: 'relative' }}>
+               <div style={{ width: `${perc}%`, height: '100%', background: 'var(--teal)', transition: 'width 0.4s ease', boxShadow: '0 0 10px rgba(0,230,170,0.5)' }} />
+            </div>
+
+            <div className="mono" style={{ fontSize: 10, color: 'var(--text-dim)', marginTop: 24, borderTop: '1px dashed var(--border)', paddingTop: 16 }}>
+              Mapping architectural zones and dependency graphs...
+            </div>
+          </div>
         </div>
       );
     }
@@ -163,9 +189,56 @@ export default function App() {
             <h2 style={{ marginBottom: 24, fontSize: 28 }}>Repository Overview</h2>
             <div className="card-blue" style={{ marginBottom: 40 }}>
               <div className="feature-tag tag-blue">◈ AI SUMMARY</div>
-              <p className="ui-desc" style={{ whiteSpace: 'pre-wrap', color: '#c8d8e8', fontSize: 13, lineHeight: 1.8 }}>
-                {summary?.content || 'Intelligence brief currently unavailable.'}
-              </p>
+              
+              {!summary ? (
+                <p className="ui-desc" style={{ color: '#c8d8e8', fontSize: 13 }}>Intelligence brief currently unavailable.</p>
+              ) : summary.content ? (
+                /* Fallback if backend does return 'content' */
+                <p className="ui-desc" style={{ whiteSpace: 'pre-wrap', color: '#c8d8e8', fontSize: 13, lineHeight: 1.8 }}>
+                  {summary.content}
+                </p>
+              ) : (
+                /* Structured display */
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                  <p className="ui-desc" style={{ color: '#c8d8e8', fontSize: 14, fontWeight: 600, borderLeft: '2px solid var(--blue)', paddingLeft: 12, background: 'rgba(79,163,255,0.05)', padding: '10px 12px', borderTopRightRadius: 6, borderBottomRightRadius: 6 }}>
+                    {summary.oneLineSummary}
+                  </p>
+                  
+                  <div className="grid-2" style={{ gap: 16, marginTop: 8 }}>
+                    <div>
+                      <div className="mono" style={{ fontSize: 10, color: 'var(--blue)', letterSpacing: '0.1em', marginBottom: 8, textTransform: 'uppercase' }}>ARCHITECTURE STYLE</div>
+                      <div className="ui-desc" style={{ color: '#e2e8f0', fontSize: 13 }}>{summary.architectureStyle || 'Unknown'}</div>
+                    </div>
+                    <div>
+                      <div className="mono" style={{ fontSize: 10, color: 'var(--blue)', letterSpacing: '0.1em', marginBottom: 8, textTransform: 'uppercase' }}>TECH STACK</div>
+                      <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                        {(summary.techStack || []).length > 0 ? summary.techStack.map(t => (
+                          <span key={t} style={{ background: 'rgba(79,163,255,0.1)', border: '1px solid rgba(79,163,255,0.2)', padding: '2px 8px', borderRadius: 4, fontSize: 11, fontFamily: 'var(--mono)', color: '#8ba8c8' }}>{t}</span>
+                        )) : <span className="ui-desc">None detected</span>}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="grid-2" style={{ gap: 16, marginTop: 8 }}>
+                    <div>
+                      <div className="mono" style={{ fontSize: 10, color: 'var(--blue)', letterSpacing: '0.1em', marginBottom: 8, textTransform: 'uppercase' }}>DESIGN PATTERNS</div>
+                      <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                        {(summary.designPatterns || []).length > 0 ? summary.designPatterns.map(p => (
+                          <span key={p} style={{ background: 'rgba(79,163,255,0.05)', border: '1px dashed rgba(79,163,255,0.3)', padding: '2px 8px', borderRadius: 4, fontSize: 11, fontFamily: 'var(--mono)', color: '#8ba8c8' }}>{p}</span>
+                        )) : <span className="ui-desc">None detected</span>}
+                      </div>
+                    </div>
+                    <div>
+                      <div className="mono" style={{ fontSize: 10, color: 'var(--blue)', letterSpacing: '0.1em', marginBottom: 8, textTransform: 'uppercase' }}>QUALITY SIGNALS</div>
+                      <ul style={{ margin: 0, paddingLeft: 18, color: '#e2e8f0', fontSize: 12, lineHeight: 1.6 }}>
+                         {(summary.qualitySignals || []).length > 0 ? summary.qualitySignals.map((s, i) => (
+                           <li key={i}>{s}</li>
+                         )) : <li>None detected</li>}
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
             
             <h3 style={{ marginBottom: 20, color: 'var(--text-muted)', fontSize: 14, letterSpacing: '0.05em' }}>EXPLORE MODULES</h3>
