@@ -13,3 +13,9 @@
 - Identified correct 7-phase development plan
 - User instructed: git setup first, then follow TaskBook phases exactly
 - Established logging conventions: Changes.md (timestamps) + SMM Prompt.txt (raw prompts)
+
+## [2026-03-21T10:14:16+05:30] — Phase 0: Git Setup ✅
+- Deleted premature `backend/` and `frontend/` folders
+- Created `.gitignore` (node_modules, .env, sandbox, dist, build, IDE files)
+- `git init` → initial commit `f843c41` on `master`
+- Files committed: TaskBooks, solution doc, problem statement, prompt logs, Changes.md, .gitignore
