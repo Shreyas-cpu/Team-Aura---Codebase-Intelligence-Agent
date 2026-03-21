@@ -1,0 +1,20 @@
+[2026-03-21T09:43:25+05:30]
+@[code_on_vibes_problem_statement.pdf] this is the problem statement and this @[team_aura_solution.html]is the solutoni have thinked for it, read ir and tell em when u are ready to generate codes for this...
+
+[2026-03-21T09:46:40+05:30]
+1. always remember to entry my given same prompts into @[Team Prompt/SMM Prompt.txt], no changes as it is prompts with time stamps.
+
+[2026-03-21T10:07:45+05:30]
+2. always remember to add changes logs in @[Changes.md]with time stamps
+
+dont do any thing without asking and keep me old prompts saved in @[Team Prompt/SMM Prompt.txt], append next to it
+
+Check for @[CodeAura_TaskBook.docx](i am you) according to this and @[CodeAura_LeadDev_TaskBook.docx]start developement 
+
+
+for the very first step is to setup git then start for further developement generation
+
+[2026-03-21T10:14:16+05:30]
+yes delete those and make new fresh one as of tasks
+do it from scratch, i dont have any repo created 
+yes start with phase 0 and ask when done and procedding to nex one
