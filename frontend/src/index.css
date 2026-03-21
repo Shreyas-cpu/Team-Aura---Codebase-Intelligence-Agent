@@ -1,0 +1,227 @@
+@import url('https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;700;800&display=swap');
+
+:root {
+  --bg: #0a0c10;
+  --bg2: #0f1117;
+  --bg3: #161b24;
+  --card: #12161e;
+  --border: rgba(255, 255, 255, 0.07);
+  --border-soft: rgba(255, 255, 255, 0.04);
+  --teal: #00e6aa;
+  --teal-dim: #00b887;
+  --amber: #f5a623;
+  --amber-dim: #c47f10;
+  --blue: #4fa3ff;
+  --red: #ff5a5a;
+  --purple: #b57bee;
+  --text: #e2e8f0;
+  --text-muted: #6b7894;
+  --text-dim: #3d4a60;
+  --mono: 'Space Mono', monospace;
+  --display: 'Syne', sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--display);
+  line-height: 1.6;
+  overflow-x: hidden;
+  min-height: 100vh;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(0, 230, 170, 0.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 230, 170, 0.02) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Atmosphere Orbs */
+.orb {
+  position: fixed;
+  border-radius: 50%;
+  filter: blur(100px);
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.2;
+}
+.orb-1 {
+  width: 600px;
+  height: 600px;
+  background: #00e6aa;
+  top: -200px;
+  left: -200px;
+}
+.orb-2 {
+  width: 400px;
+  height: 400px;
+  background: #f5a623;
+  bottom: 10%;
+  right: -100px;
+}
+.orb-3 {
+  width: 300px;
+  height: 300px;
+  background: #4fa3ff;
+  top: 40%;
+  left: 50%;
+  opacity: 0.1;
+}
+
+/* Base Typo */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--display);
+  letter-spacing: -0.02em;
+}
+
+.mono {
+  font-family: var(--mono);
+}
+
+/* General Layout Utilities */
+.app-container {
+  position: relative;
+  z-index: 1;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 32px 100px;
+}
+
+/* Animations */
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(0.7); }
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes scan {
+  0% { top: 0%; }
+  100% { top: 100%; }
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* Reusable Components */
+.card-base {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 24px;
+  transition: border-color 0.2s;
+}
+
+.card-base:hover {
+  border-color: rgba(0, 230, 170, 0.2);
+}
+
+.card-teal { border-color: rgba(0,230,170,0.2); background: rgba(0,230,170,0.04); }
+.card-amber { border-color: rgba(245,166,35,0.2); background: rgba(245,166,35,0.04); }
+.card-blue { border-color: rgba(79,163,255,0.2); background: rgba(79,163,255,0.04); }
+.card-red { border-color: rgba(255,90,90,0.2); background: rgba(255,90,90,0.03); }
+
+/* Buttons */
+.btn-primary {
+  background: var(--teal);
+  color: #000;
+  border-radius: 6px;
+  padding: 8px 18px;
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  border: none;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.btn-primary:not(:disabled):hover {
+  opacity: 0.9;
+}
+
+.btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-ghost {
+  background: transparent;
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 8px 18px;
+  font-family: var(--mono);
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-ghost:not(:disabled):hover {
+  border-color: rgba(0, 230, 170, 0.3);
+  color: var(--teal);
+}
+
+/* Inputs */
+.input-text {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 10px 14px;
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--text-muted);
+  width: 100%;
+  transition: border-color 0.2s;
+}
+
+.input-text:focus {
+  border-color: rgba(0, 230, 170, 0.3);
+  outline: none;
+}
+
+.input-text::placeholder {
+  color: var(--text-dim);
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg);
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,0.1);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255,255,255,0.2);
+}

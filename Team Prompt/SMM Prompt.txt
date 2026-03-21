@@ -51,3 +51,8 @@ done by me, ready ro go on...
 
 [2026-03-21T11:48:05+05:30]
 continue for  Phase 5
+
+[2026-03-21T12:59:42+05:30]
+add me this frountend to this project, and make some changes like
+-react based frountend
+-make the theme in the style of this web page...
