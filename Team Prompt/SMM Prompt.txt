@@ -133,3 +133,6 @@ error
 
 [2026-03-21T16:59:37+05:30]
 error found - AI service is temporarily unavailable. Please try again.
+
+[2026-03-21T17:10:39+05:30]
+make me self testing file which will test and  run to start the complete execution of the code while initate all the dependencys and run the server  to make th project online 
