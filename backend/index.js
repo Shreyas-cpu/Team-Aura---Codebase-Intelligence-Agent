@@ -3,6 +3,7 @@ const cors = require('cors');
 const dotenv = require('dotenv');
 const cloneRoutes = require('./routes/clone.routes');
 const filesRoutes = require('./routes/files.routes');
+const analyzeRoutes = require('./routes/analyze.routes');
 
 dotenv.config();
 
@@ -15,12 +16,13 @@ app.use(express.json());
 
 // ── Health Check ──
 app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok', service: 'CodeAura Backend', version: '0.1.0' });
+  res.json({ status: 'ok', service: 'CodeAura Backend', version: '0.2.0' });
 });
 
 // ── Routes ──
 app.use('/api/clone', cloneRoutes);
 app.use('/api/files', filesRoutes);
+app.use('/api/analyze', analyzeRoutes);
 
 // ── Start ──
 app.listen(PORT, () => {

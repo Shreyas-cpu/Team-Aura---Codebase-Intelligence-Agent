@@ -7,11 +7,15 @@
     "start": "node index.js",
     "dev": "nodemon index.js"
   },
-  "keywords": ["codeaura", "backend"],
+  "keywords": [
+    "codeaura",
+    "backend"
+  ],
   "author": "Team Aura",
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
+    "@google/genai": "^1.46.0",
     "acorn": "^8.16.0",
     "cors": "^2.8.6",
     "dotenv": "^17.3.1",
