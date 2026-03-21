@@ -86,5 +86,5 @@
 - Developed specific layouts for `M1`, `M2`, `M3`, `B1`, and `ASK AI`.
 - Designed the Sidebar + Main Layout grid mapping directly to the `team_aura_solution.html` aesthetic wireframe.
 - Added extensive UI utility classes (`.ui-mockup`, `.ui-topbar`, `.ui-tabs`, `.ui-sidebar`) into `index.css`.
-- **Bug Fixed (16:54):** Restored the `localPath` API payloads in `App.jsx` `handleAnalyze()` which were mistakenly omitted during the rewrite, causing `M1` analysis 500 errors.
+- **Bug Fixed (16:54):** Restored the `localPath` API payloads in `App.jsx` `handleAnalyze()` which were mistakenly omitted during the rewrite, causing `M1` analysis 500 errors. Fixed property alias bug `repoPath` -> `localPath`.
 - Commit: `feat(frontend): redesign dashboard to match tabbed layout specification`

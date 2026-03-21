@@ -67,7 +67,7 @@ export default function App() {
       
       setLoadingStep('Cloning repository...');
       const { data: cloneData } = await axios.post(`${API_BASE}/clone`, { repoUrl });
-      const localPath = cloneData.repoPath;
+      const localPath = cloneData.localPath;
 
       setLoadingStep('M1: Analyzing Folder Structure...');
       const { data: st } = await axios.post(`${API_BASE}/analyze/structure`, { localPath });
