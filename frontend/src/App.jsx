@@ -390,8 +390,8 @@ export default function App() {
                 </div>
                 
                 <div className="ui-panel-title" style={{color: 'var(--blue)', marginTop: 28}}>LANGUAGE</div>
-                <div style={{ display: 'inline-block', background: 'rgba(79,163,255,0.1)', border: '1px solid rgba(79,163,255,0.2)', padding: '4px 10px', borderRadius: 4, fontFamily: 'var(--mono)', fontSize: 13, color: '#8ba8c8' }}>
-                  {entryPoint.language}
+                <div style={{ display: 'flex', gap: 10, marginTop: 8 }}>
+                  <span className="feature-tag tag-base">{entryPoint.language}</span>
                 </div>
               </div>
               <div className="card-base">
