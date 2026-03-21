@@ -35,3 +35,10 @@
 - Created `backend/routes/analyze.routes.js` — `/api/analyze/structure` and `/api/analyze/entrypoint` endpoints
 - **Tested on `expressjs/express`**: Entry point `index.js` detected via package.json main field, execution chain traced through `lib/express.js → lib/application.js → lib/view.js → lib/request.js → lib/response.js`
 - Commit: `feat(M1): folder analysis engine + Gemini prompt` + `feat(M2): entry point detection + execution chain API`
+
+## [2026-03-21T11:08:57+05:30] — Phase 3: M3 Dependency Graph ✅
+- Branch: `feat/m3-dependency-graph`
+- Created `backend/services/dependency.service.js` — T-04: acorn AST parsing (JS), regex (TS/Python), import resolution, `importedByCount` scoring, 100-node cap
+- Added `/api/analyze/dependencies` endpoint to `analyze.routes.js`
+- **Tested on `expressjs/express`**: 100 nodes (capped), 97 edges from 213 source files
+- Commit: `feat(M3): AST dependency graph, JS + Python import extractors`
