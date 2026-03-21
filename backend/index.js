@@ -1,13 +1,14 @@
 const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
+
+dotenv.config();
+
 const cloneRoutes = require('./routes/clone.routes');
 const filesRoutes = require('./routes/files.routes');
 const analyzeRoutes = require('./routes/analyze.routes');
 const chatRoutes = require('./routes/chat.routes');
 const preloadRoutes = require('./routes/preload.routes');
-
-dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 3001;
