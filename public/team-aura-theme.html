@@ -1,0 +1,903 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Team Aura — CodeAura Solution Document</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --bg: #0a0c10;
+    --bg2: #0f1117;
+    --bg3: #161b24;
+    --card: #12161e;
+    --border: rgba(255,255,255,0.07);
+    --border-accent: rgba(0,230,170,0.3);
+    --teal: #00e6aa;
+    --teal-dim: #00b887;
+    --amber: #f5a623;
+    --amber-dim: #c47f10;
+    --blue: #4fa3ff;
+    --red: #ff5a5a;
+    --text: #e2e8f0;
+    --text-muted: #6b7894;
+    --text-dim: #3d4a60;
+    --mono: 'Space Mono', monospace;
+    --display: 'Syne', sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: linear-gradient(140deg, #071010 0%, #08201f 28%, #04383e 60%, #00e6aa 100%);
+    color: var(--text);
+    font-family: var(--display);
+    line-height: 1.6;
+    overflow-x: hidden;
+    background-attachment: fixed;
+  }
+
+  /* ---- GRID NOISE BACKGROUND ---- */
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image:
+      linear-gradient(rgba(0,230,170,0.02) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,230,170,0.02) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* ---- GLOW ORBS ---- */
+  .orb {
+    position: fixed;
+    border-radius: 50%;
+    filter: blur(100px);
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.25;
+  }
+  .orb-1 { width: 600px; height: 600px; background: #00e6aa; top: -200px; left: -200px; }
+  .orb-2 { width: 400px; height: 400px; background: #f5a623; bottom: 10%; right: -100px; }
+
+  /* ---- LAYOUT ---- */
+  .container {
+    position: relative; z-index: 1;
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 0 32px 80px;
+  }
+
+  /* ---- HEADER ---- */
+  header {
+    position: relative;
+    padding: 60px 0 48px;
+    border-bottom: 1px solid var(--border);
+  }
+  .badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: rgba(0,230,170,0.08);
+    border: 1px solid rgba(0,230,170,0.25);
+    border-radius: 4px;
+    padding: 4px 10px;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--teal);
+    letter-spacing: 0.08em;
+    margin-bottom: 20px;
+  }
+  .badge::before { content: '▶'; font-size: 8px; }
+  h1 {
+    font-size: clamp(44px, 8vw, 72px);
+    font-weight: 800;
+    line-height: 1.0;
+    letter-spacing: -0.03em;
+    margin-bottom: 4px;
+  }
+  h1 .accent { color: var(--teal); }
+  h1 .dim { color: var(--text-muted); }
+  .subtitle {
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-top: 16px;
+    letter-spacing: 0.05em;
+  }
+  .header-meta {
+    display: flex; gap: 24px; flex-wrap: wrap;
+    margin-top: 28px;
+  }
+  .meta-pill {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text-muted);
+    display: flex; align-items: center; gap: 6px;
+  }
+  .meta-pill .dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--teal);
+    box-shadow: 0 0 8px var(--teal);
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse {
+    0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.5;transform:scale(0.7)}
+  }
+
+  /* ---- SECTION LABELS ---- */
+  .section { margin-top: 64px; }
+  .section-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    color: var(--teal);
+    text-transform: uppercase;
+    margin-bottom: 16px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .section-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(to right, rgba(0,230,170,0.3), transparent);
+  }
+  h2 {
+    font-size: clamp(22px, 4vw, 32px);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1.2;
+    margin-bottom: 12px;
+  }
+  h3 {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 8px;
+  }
+  p {
+    font-size: 15px;
+    color: #94a3b8;
+    line-height: 1.75;
+  }
+
+  /* ---- CARDS ---- */
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+    transition: border-color 0.2s;
+  }
+  .card:hover { border-color: rgba(0,230,170,0.2); }
+  .card-teal { border-color: rgba(0,230,170,0.2); background: rgba(0,230,170,0.04); }
+  .card-amber { border-color: rgba(245,166,35,0.2); background: rgba(245,166,35,0.04); }
+  .card-blue { border-color: rgba(79,163,255,0.2); background: rgba(79,163,255,0.04); }
+
+  /* ---- GRID ---- */
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  @media (max-width: 640px) {
+    .grid-2, .grid-3 { grid-template-columns: 1fr; }
+  }
+
+  /* ---- FEATURE TAGS ---- */
+  .tag {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.06em;
+    font-weight: 700;
+    margin-bottom: 10px;
+  }
+  .tag-m { background: rgba(0,230,170,0.15); color: var(--teal); border: 1px solid rgba(0,230,170,0.25); }
+  .tag-b { background: rgba(245,166,35,0.15); color: var(--amber); border: 1px solid rgba(245,166,35,0.25); }
+
+  /* ---- TIMELINE ---- */
+  .timeline { position: relative; padding-left: 28px; margin-top: 24px; }
+  .timeline::before {
+    content: '';
+    position: absolute; left: 7px; top: 8px; bottom: 8px;
+    width: 1px;
+    background: linear-gradient(to bottom, var(--teal), var(--amber), transparent);
+    opacity: 0.4;
+  }
+  .tl-item { position: relative; margin-bottom: 28px; }
+  .tl-item::before {
+    content: '';
+    position: absolute; left: -24px; top: 6px;
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--teal);
+    box-shadow: 0 0 8px var(--teal);
+  }
+  .tl-item.amber::before { background: var(--amber); box-shadow: 0 0 8px var(--amber); }
+  .tl-time {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--teal);
+    letter-spacing: 0.1em;
+    margin-bottom: 4px;
+  }
+  .tl-item.amber .tl-time { color: var(--amber); }
+  .tl-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 4px;
+  }
+  .tl-desc {
+    font-size: 13px;
+    font-family: var(--mono);
+    color: var(--text-muted);
+    line-height: 1.6;
+  }
+
+  /* ---- TECH STACK ---- */
+  .stack-item {
+    display: flex; align-items: center; gap: 12px;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .stack-item:last-child { border-bottom: none; }
+  .stack-icon {
+    width: 36px; height: 36px;
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px;
+    flex-shrink: 0;
+  }
+  .stack-name { font-size: 14px; font-weight: 600; }
+  .stack-role { font-family: var(--mono); font-size: 11px; color: var(--text-muted); }
+
+  /* ---- OUTPUT MOCKUP ---- */
+  .terminal {
+    background: #050709;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    margin-top: 16px;
+  }
+  .terminal-bar {
+    background: var(--bg3);
+    padding: 10px 16px;
+    display: flex; align-items: center; gap: 8px;
+    border-bottom: 1px solid var(--border);
+  }
+  .dot-red { width: 10px; height: 10px; border-radius: 50%; background: #ff5f57; }
+  .dot-yellow { width: 10px; height: 10px; border-radius: 50%; background: #febc2e; }
+  .dot-green { width: 10px; height: 10px; border-radius: 50%; background: #28c840; }
+  .terminal-title { font-family: var(--mono); font-size: 11px; color: var(--text-muted); margin-left: 8px; }
+  .terminal-body {
+    padding: 20px 24px;
+    font-family: var(--mono);
+    font-size: 12px;
+    line-height: 1.9;
+    color: #8ba8c8;
+  }
+  .t-path { color: var(--teal); }
+  .t-arrow { color: var(--amber); }
+  .t-comment { color: #445566; }
+  .t-key { color: var(--blue); }
+  .t-val { color: #c3e88d; }
+
+  /* ---- STRATEGY CALLOUT ---- */
+  .callout {
+    border-left: 2px solid var(--teal);
+    padding: 16px 20px;
+    background: rgba(0,230,170,0.04);
+    border-radius: 0 8px 8px 0;
+    margin: 24px 0;
+  }
+  .callout.amber { border-left-color: var(--amber); background: rgba(245,166,35,0.04); }
+  .callout-title {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--teal);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+  .callout.amber .callout-title { color: var(--amber); }
+  .callout p { font-size: 14px; color: #94a3b8; }
+
+  /* ---- SCORING TABLE ---- */
+  table { width: 100%; border-collapse: collapse; margin-top: 16px; }
+  th {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    padding: 8px 12px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+  }
+  td {
+    padding: 10px 12px;
+    font-size: 13px;
+    border-bottom: 1px solid var(--border);
+    color: #94a3b8;
+    vertical-align: top;
+  }
+  tr:last-child td { border-bottom: none; }
+  .score-bar {
+    display: inline-block;
+    height: 4px;
+    border-radius: 2px;
+    background: var(--teal);
+    margin-left: 8px;
+    vertical-align: middle;
+    opacity: 0.7;
+  }
+
+  /* ---- DIFFERENTIATOR GRID ---- */
+  .diff-item {
+    padding: 20px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: var(--card);
+    position: relative;
+    overflow: hidden;
+  }
+  .diff-item::before {
+    content: attr(data-num);
+    position: absolute;
+    top: -10px; right: 12px;
+    font-size: 80px;
+    font-weight: 800;
+    color: rgba(0,230,170,0.04);
+    line-height: 1;
+    font-family: var(--mono);
+    pointer-events: none;
+  }
+  .diff-icon { font-size: 22px; margin-bottom: 10px; }
+  .diff-title { font-size: 15px; font-weight: 700; margin-bottom: 6px; }
+  .diff-desc { font-size: 13px; color: var(--text-muted); line-height: 1.6; }
+
+  /* ---- FOOTER ---- */
+  footer {
+    margin-top: 80px;
+    padding-top: 32px;
+    border-top: 1px solid var(--border);
+    display: flex; justify-content: space-between; align-items: center;
+    flex-wrap: wrap; gap: 12px;
+  }
+  .footer-brand { font-size: 20px; font-weight: 800; letter-spacing: -0.02em; }
+  .footer-brand .accent { color: var(--teal); }
+  .footer-meta { font-family: var(--mono); font-size: 11px; color: var(--text-dim); }
+
+  /* ---- DIVIDER ---- */
+  .divider {
+    height: 1px;
+    background: linear-gradient(to right, transparent, var(--border), transparent);
+    margin: 48px 0;
+  }
+
+  /* ---- UI MOCKUP BOX ---- */
+  .ui-mockup {
+    background: #080b10;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    margin-top: 20px;
+  }
+  .ui-topbar {
+    background: #0d1118;
+    border-bottom: 1px solid var(--border);
+    padding: 10px 20px;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .ui-topbar-logo { font-size: 14px; font-weight: 700; color: var(--teal); letter-spacing: -0.02em; }
+  .ui-topbar-input {
+    flex: 1;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 5px 12px;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: #6b7894;
+  }
+  .ui-topbar-btn {
+    background: var(--teal);
+    color: #000;
+    border-radius: 6px;
+    padding: 5px 14px;
+    font-size: 11px;
+    font-weight: 700;
+    font-family: var(--mono);
+  }
+  .ui-tabs {
+    display: flex;
+    background: #0a0d12;
+    border-bottom: 1px solid var(--border);
+    padding: 0 20px;
+  }
+  .ui-tab {
+    font-family: var(--mono);
+    font-size: 10px;
+    padding: 10px 14px;
+    color: var(--text-muted);
+    border-bottom: 2px solid transparent;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+  .ui-tab.active { color: var(--teal); border-bottom-color: var(--teal); }
+  .ui-body { display: grid; grid-template-columns: 200px 1fr; }
+  .ui-sidebar {
+    border-right: 1px solid var(--border);
+    padding: 16px 12px;
+    font-family: var(--mono);
+    font-size: 11px;
+  }
+  .ui-tree-item { padding: 3px 6px; color: var(--text-muted); }
+  .ui-tree-folder { color: var(--teal); font-weight: 700; }
+  .ui-tree-indent { padding-left: 12px; }
+  .ui-main { padding: 16px 20px; }
+  .ui-panel-title {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--teal);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+  .ui-desc { font-size: 12px; color: #6b7894; line-height: 1.7; }
+  .ui-desc .hl { color: var(--amber); }
+
+  /* ---- RISK BOX ---- */
+  .risk-item {
+    display: flex; gap: 12px;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .risk-item:last-child { border-bottom: none; }
+  .risk-level {
+    font-family: var(--mono);
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    padding: 2px 6px;
+    border-radius: 3px;
+    white-space: nowrap;
+    height: fit-content;
+    margin-top: 2px;
+  }
+  .risk-high { background: rgba(255,90,90,0.15); color: var(--red); border: 1px solid rgba(255,90,90,0.2); }
+  .risk-med { background: rgba(245,166,35,0.15); color: var(--amber); border: 1px solid rgba(245,166,35,0.2); }
+  .risk-low { background: rgba(0,230,170,0.1); color: var(--teal); border: 1px solid rgba(0,230,170,0.2); }
+  .risk-text { font-size: 13px; color: var(--text-muted); }
+  .risk-text strong { color: var(--text); font-weight: 600; }
+</style>
+</head>
+<body>
+<div class="orb orb-1"></div>
+<div class="orb orb-2"></div>
+
+<div class="container">
+
+  <!-- ============ HEADER ============ -->
+  <header>
+    <div class="badge">HACKATHON · SOLUTION DOCUMENT · v1.0</div>
+    <h1>Code<span class="accent">Aura</span><br/><span class="dim" style="font-size:0.55em;font-weight:600;letter-spacing:-0.01em">Codebase Intelligence Agent</span></h1>
+    <p class="subtitle">// AI-POWERED · REPOSITORY ANALYSIS · ONBOARDING IN MINUTES</p>
+    <div class="header-meta">
+      <div class="meta-pill"><span class="dot"></span> Team Aura</div>
+      <div class="meta-pill">⏱ 10-Hour Sprint</div>
+      <div class="meta-pill">⚡ Powered by Gemini AI + RAG</div>
+      <div class="meta-pill">📦 Full-Stack · Node + React</div>
+    </div>
+  </header>
+
+  <!-- ============ PITCH ============ -->
+  <div class="section">
+    <div class="section-label">01 — The Problem</div>
+    <h2>40,000 lines of code.<br/>Zero documentation. Day one.</h2>
+    <p style="margin-top:12px; max-width:680px">
+      Every developer knows this feeling. Inherited codebase. Dead senior dev. Urgent production bug.
+      Traditional IDEs navigate code — they don't <em>explain</em> it. CodeAura changes that.
+      It reads a repository like a senior engineer and produces instant, human-readable intelligence.
+    </p>
+
+    <div class="callout" style="margin-top:28px">
+      <div class="callout-title">Our Edge</div>
+      <p>We don't just map the code. We <strong style="color:#e2e8f0">reason about it</strong> — using a RAG pipeline that treats your codebase as a living knowledge base,
+      answering architecture questions in natural language. The output is a <strong style="color:#e2e8f0">Unified Intelligence Dashboard</strong>, not a static report.</p>
+    </div>
+  </div>
+
+  <!-- ============ PRODUCT NAME + TAGLINE ============ -->
+  <div class="section">
+    <div class="section-label">02 — Product Identity</div>
+    <div class="card card-teal" style="padding:32px">
+      <div style="display:flex;align-items:flex-start;gap:32px;flex-wrap:wrap">
+        <div>
+          <div style="font-size:48px;font-weight:800;letter-spacing:-0.03em;color:var(--teal)">CodeAura</div>
+          <div style="font-family:var(--mono);font-size:13px;color:var(--text-muted);margin-top:4px">by Team Aura · 2026
+            
+          </div>
+        </div>
+        <div style="flex:1;min-width:240px">
+          <p style="font-size:18px;font-weight:600;color:var(--text);line-height:1.5;margin-bottom:12px">
+            "The instant expert on any codebase."
+          </p>
+          <p style="font-size:14px">Drop a GitHub URL. Get back a full architectural briefing —
+          folder intelligence, entry point trace, dependency graph, and a conversational AI that answers your questions.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ UI MOCKUP ============ -->
+  <div class="section">
+    <div class="section-label">03 — UI Design Blueprint</div>
+    <h2>The Dashboard</h2>
+    <p>A single-page intelligence hub. Dark terminal aesthetic. Three analysis panels, one chat interface.</p>
+
+    <div class="ui-mockup">
+      <div class="ui-topbar">
+        <div class="ui-topbar-logo">⬡ CodeAura</div>
+        <div class="ui-topbar-input">https://github.com/expressjs/express</div>
+        <div class="ui-topbar-btn">ANALYSE →</div>
+      </div>
+      <div class="ui-tabs">
+        <div class="ui-tab active">M1 · Structure</div>
+        <div class="ui-tab">M2 · Entry Point</div>
+        <div class="ui-tab">M3 · Dependencies</div>
+        <div class="ui-tab">Ask AI ✦</div>
+      </div>
+      <div class="ui-body">
+        <div class="ui-sidebar">
+          <div class="ui-tree-folder">/ express</div>
+          <div class="ui-tree-indent">
+            <div class="ui-tree-folder">lib/</div>
+            <div class="ui-tree-indent">
+              <div class="ui-tree-item">application.js</div>
+              <div class="ui-tree-item">express.js</div>
+              <div class="ui-tree-folder">middleware/</div>
+              <div class="ui-tree-folder">router/</div>
+            </div>
+            <div class="ui-tree-folder">test/</div>
+            <div class="ui-tree-item" style="color:#3d4a60">node_modules/ ✗</div>
+          </div>
+        </div>
+        <div class="ui-main">
+          <div class="ui-panel-title">▸ M1 Folder Intelligence Report</div>
+          <div class="ui-desc">
+            <span class="hl">lib/</span> — Core framework logic. Houses the Express application constructor, routing engine, and built-in middleware. <strong style="color:#e2e8f0">Critical zone.</strong><br/>
+            <span class="hl">lib/middleware/</span> — Query string parser and static file server. Preprocesses every incoming request before route handlers fire.<br/>
+            <span class="hl">lib/router/</span> — Route matching engine. Handles path parameterisation, layer stacking, and method dispatch.<br/>
+            <span class="hl">test/</span> — Mocha test suite. ~200 integration tests covering all route scenarios.
+          </div>
+        </div>
+      </div>
+    </div>
+    <p style="font-size:12px;font-family:var(--mono);color:var(--text-dim);margin-top:8px;text-align:center">↑ Wireframe mockup of the CodeAura analysis dashboard</p>
+  </div>
+
+  <!-- ============ FEATURES ============ -->
+  <div class="section">
+    <div class="section-label">04 — Feature Architecture</div>
+    <h2>What we build</h2>
+
+    <div class="grid-3" style="margin-top:24px">
+      <div class="card">
+        <div class="tag tag-m">M1 · MANDATORY</div>
+        <h3>Folder Structure Analysis</h3>
+        <p style="font-size:13px">Parse repository tree → run Gemini prompt per directory cluster → generate plain-English purpose for each folder. Color-coded by criticality (critical / support / test).</p>
+        <div style="margin-top:14px;font-family:var(--mono);font-size:11px;color:var(--teal)">Output: Interactive tree with hover explanations</div>
+      </div>
+      <div class="card">
+        <div class="tag tag-m">M2 · MANDATORY</div>
+        <h3>Entry Point Detection</h3>
+        <p style="font-size:13px">Heuristic scan for <code style="color:var(--amber)">main.py</code>, <code style="color:var(--amber)">server.js</code>, <code style="color:var(--amber)">index.js</code>, <code style="color:var(--amber)">app.py</code> etc. Parse imports/calls from entry file → build execution timeline as animated flow.</p>
+        <div style="margin-top:14px;font-family:var(--mono);font-size:11px;color:var(--teal)">Output: Animated execution flow diagram</div>
+      </div>
+      <div class="card">
+        <div class="tag tag-m">M3 · MANDATORY</div>
+        <h3>Dependency Mapping</h3>
+        <p style="font-size:13px">AST-based import extraction across all source files. Build a directed graph (route → controller → service → model). Render as interactive D3.js force graph — click to trace paths.</p>
+        <div style="margin-top:14px;font-family:var(--mono);font-size:11px;color:var(--teal)">Output: Clickable D3 dependency graph</div>
+      </div>
+    </div>
+
+    <div class="grid-3" style="margin-top:16px">
+      <div class="card card-amber">
+        <div class="tag tag-b">B1 · BONUS</div>
+        <h3>Critical File Identification</h3>
+        <p style="font-size:13px">Score files by import frequency + business logic density. Highlight the top 5 most impactful files with risk-color badges. Judges love this — it's visually dramatic.</p>
+      </div>
+      <div class="card card-amber">
+        <div class="tag tag-b">B2 · BONUS</div>
+        <h3>Execution Flow Tracer</h3>
+        <p style="font-size:13px">Pick any API route → trace the full request lifecycle from HTTP handler → middleware → controller → service → DB. Renders as a horizontal swimlane diagram.</p>
+      </div>
+      <div class="card card-amber">
+        <div class="tag tag-b">B3 · BONUS</div>
+        <h3>AI Repository Summary</h3>
+        <p style="font-size:13px">One Gemini call with the full context window: tech stack, architecture style (MVC / microservices / monolith), key design decisions, and code quality signals. The wow factor.</p>
+      </div>
+    </div>
+
+    <div class="card card-blue" style="margin-top:16px">
+      <div class="tag" style="background:rgba(79,163,255,0.15);color:var(--blue);border:1px solid rgba(79,163,255,0.2)">✦ CREATIVE BONUS — OUR DIFFERENTIATOR</div>
+      <h3>Ask The Codebase — Conversational AI Panel</h3>
+      <p style="font-size:13px;max-width:700px">A live chat tab where developers type natural language questions: <em>"Where is the authentication logic?"</em>, <em>"What happens when a user resets their password?"</em>, <em>"Which file should I edit to add a new API endpoint?"</em> — answered by Gemini with RAG over the indexed codebase. This is the real onboarding killer feature. No other team will ship this in 10 hours.</p>
+    </div>
+  </div>
+
+  <!-- ============ SAMPLE OUTPUT ============ -->
+  <div class="section">
+    <div class="section-label">05 — Sample Outputs</div>
+    <h2>What the judges will see</h2>
+
+    <div class="terminal">
+      <div class="terminal-bar"><div class="dot-red"></div><div class="dot-yellow"></div><div class="dot-green"></div><span class="terminal-title">codeaura — M1 output · express/express</span></div>
+      <div class="terminal-body">
+<span class="t-comment"># ── FOLDER STRUCTURE ANALYSIS ──────────────────────</span><br/>
+<span class="t-path">lib/</span>         <span class="t-arrow">→</span> <span style="color:var(--red)">⬡ CRITICAL</span>  Core framework runtime. All req/res handling lives here.<br/>
+<span class="t-path">lib/router/</span>  <span class="t-arrow">→</span> <span style="color:var(--amber)">⬡ IMPORTANT</span> Trie-based route matching engine. Layer composition for middleware.<br/>
+<span class="t-path">lib/middleware/</span> <span class="t-arrow">→</span> <span style="color:var(--amber)">⬡ IMPORTANT</span> init.js bootstraps every request; query.js parses URL params.<br/>
+<span class="t-path">test/</span>        <span class="t-arrow">→</span> <span style="color:var(--blue)">⬡ TEST</span>      Mocha suite. ~220 specs. Strong coverage of edge cases.<br/>
+<span class="t-path">.github/</span>     <span class="t-arrow">→</span> <span style="color:var(--text-dim)">⬡ META</span>      CI workflows. Not production code.<br/><br/>
+<span class="t-comment"># ── ENTRY POINT DETECTION ──────────────────────────</span><br/>
+<span class="t-key">Entry:</span>  <span class="t-val">index.js</span><br/>
+<span style="color:#8ba8c8">  index.js</span><br/>
+<span class="t-arrow">  └─►</span> <span style="color:#8ba8c8">lib/express.js</span>    <span class="t-comment">// creates Express app factory</span><br/>
+<span class="t-arrow">     └─►</span> <span style="color:#8ba8c8">lib/application.js</span> <span class="t-comment">// mounts settings, engines, routing</span><br/>
+<span class="t-arrow">        └─►</span> <span style="color:#8ba8c8">lib/router/index.js</span> <span class="t-comment">// registers route layers</span><br/>
+<span class="t-arrow">           └─►</span> <span style="color:var(--teal)">Server listening → PORT 3000</span><br/><br/>
+<span class="t-comment"># ── CRITICAL FILES ─────────────────────────────────</span><br/>
+<span style="color:var(--red)">1.</span> <span class="t-val">lib/application.js</span>  <span class="t-comment">// imported by 18 files — the brain</span><br/>
+<span style="color:var(--amber)">2.</span> <span class="t-val">lib/router/index.js</span> <span class="t-comment">// every request passes through here</span><br/>
+<span style="color:var(--blue)">3.</span> <span class="t-val">lib/request.js</span>      <span class="t-comment">// enriches native req with helpers</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ TECH STACK ============ -->
+  <div class="section">
+    <div class="section-label">06 — Tech Stack</div>
+    <h2>What we use & why</h2>
+    <div class="card" style="margin-top:20px">
+      <div class="stack-item">
+        <div class="stack-icon" style="background:rgba(0,230,170,0.1)">🤖</div>
+        <div><div class="stack-name">Gemini 1.5 Pro (API)</div><div class="stack-role">AI BACKBONE — folder analysis, entry point reasoning, B3 summary, and RAG Q&A</div></div>
+      </div>
+      <div class="stack-item">
+        <div class="stack-icon" style="background:rgba(245,166,35,0.1)">⚙️</div>
+        <div><div class="stack-name">Node.js + Express (Backend)</div><div class="stack-role">GIT CLONE ENGINE · AST PARSING (acorn / babel-parser) · REST API for frontend</div></div>
+      </div>
+      <div class="stack-item">
+        <div class="stack-icon" style="background:rgba(79,163,255,0.1)">⚛️</div>
+        <div><div class="stack-name">React + Vite (Frontend)</div><div class="stack-role">DASHBOARD UI — tab-based layout, D3.js for dependency graph, animated flow diagrams</div></div>
+      </div>
+      <div class="stack-item">
+        <div class="stack-icon" style="background:rgba(180,100,255,0.1)">🗂️</div>
+        <div><div class="stack-name">In-Memory Vector Store (RAG)</div><div class="stack-role">CHUNK → EMBED (Gemini embeddings) → cosine similarity search for Q&A panel</div></div>
+      </div>
+      <div class="stack-item">
+        <div class="stack-icon" style="background:rgba(255,90,90,0.1)">🐙</div>
+        <div><div class="stack-name">simple-git (npm)</div><div class="stack-role">REPO CLONING — pulls GitHub URL into temp /sandbox directory in under 3 seconds</div></div>
+      </div>
+      <div class="stack-item" style="border-bottom:none">
+        <div class="stack-icon" style="background:rgba(0,230,170,0.05)">📊</div>
+        <div><div class="stack-name">D3.js v7</div><div class="stack-role">DEPENDENCY GRAPH — force-directed layout, click-to-highlight, zoom/pan interaction</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ 10-HOUR SPRINT PLAN ============ -->
+  <div class="section">
+    <div class="section-label">07 — 10-Hour Sprint Plan</div>
+    <h2>Hour-by-hour execution</h2>
+
+    <div class="grid-2" style="margin-top:24px">
+      <div>
+        <div class="timeline">
+          <div class="tl-item">
+            <div class="tl-time">HOUR 0–1</div>
+            <div class="tl-title">Project scaffold + Git integration</div>
+            <div class="tl-desc">Setup monorepo. Backend: Express + simple-git clone endpoint. Frontend: Vite + React shell with tab layout. Confirm GitHub URL → temp clone pipeline works.</div>
+          </div>
+          <div class="tl-item">
+            <div class="tl-time">HOUR 1–3</div>
+            <div class="tl-title">M1 + M2 Core Logic</div>
+            <div class="tl-desc">Recursive directory walker (ignore node_modules, .git). Entry point heuristic detector. Gemini API calls for folder purpose analysis. Wire to frontend.</div>
+          </div>
+          <div class="tl-item amber">
+            <div class="tl-time">HOUR 3–5</div>
+            <div class="tl-title">M3 Dependency Graph</div>
+            <div class="tl-desc">AST import extraction using acorn (JS) + ast module (Python). Build adjacency list. D3.js force graph on frontend. Click-to-highlight paths. This is the visual showstopper.</div>
+          </div>
+          <div class="tl-item amber">
+            <div class="tl-time">HOUR 5–7</div>
+            <div class="tl-title">RAG Pipeline + Ask AI Panel</div>
+            <div class="tl-desc">Chunk all source files (200 token windows). Embed with Gemini. Store in-memory. Build semantic search. Wire to chat UI tab. Test with 5 real questions.</div>
+          </div>
+          <div class="tl-item">
+            <div class="tl-time">HOUR 7–8.5</div>
+            <div class="tl-title">Bonus Features + Dashboard Polish</div>
+            <div class="tl-desc">B1 critical file badges. B3 AI summary card on landing. Entry point execution flow animation. UI polish: loading states, animations, error handling.</div>
+          </div>
+          <div class="tl-item amber">
+            <div class="tl-time">HOUR 8.5–10</div>
+            <div class="tl-title">Demo prep + Submission</div>
+            <div class="tl-desc">Choose 2–3 diverse demo repos (Node API, React app, Python service). Rehearse 5-min pitch. README. GitHub push. Buffer for fixes.</div>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="card" style="margin-bottom:16px">
+          <div style="font-family:var(--mono);font-size:10px;color:var(--teal);letter-spacing:0.1em;margin-bottom:14px">DEMO REPOS (CHOSEN FOR DIVERSITY)</div>
+          <div style="font-family:var(--mono);font-size:12px;color:var(--text-muted);line-height:2.2">
+            <div><span style="color:var(--teal)">▸</span> expressjs/express — Node.js, small, well-structured</div>
+            <div><span style="color:var(--amber)">▸</span> tiangolo/fastapi — Python, pydantic, async</div>
+            <div><span style="color:var(--blue)">▸</span> gothinkster/realworld — Full-stack, multiple layers</div>
+          </div>
+        </div>
+
+        <div class="card card-amber">
+          <div style="font-family:var(--mono);font-size:10px;color:var(--amber);letter-spacing:0.1em;margin-bottom:14px">TEAM SPLIT (2 PEOPLE)</div>
+          <div style="font-family:var(--mono);font-size:12px;line-height:2.2">
+            <div style="color:var(--text-muted)"><span style="color:var(--teal)">Dev A — Backend</span></div>
+            <div style="color:#3d4a60;padding-left:12px">Git clone · AST parsing · Gemini API · RAG pipeline</div>
+            <div style="color:var(--text-muted);margin-top:4px"><span style="color:var(--amber)">Dev B — Frontend</span></div>
+            <div style="color:#3d4a60;padding-left:12px">React dashboard · D3 graph · Animations · UI polish</div>
+          </div>
+        </div>
+
+        <div class="callout amber" style="margin-top:16px">
+          <div class="callout-title">Priority Rule</div>
+          <p>M1 → M2 → M3 are non-negotiable. Build them to work first. Bonus features are layered on top. If time runs short, a polished M1+M2+M3 beats a broken bonus feature every time.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ DIFFERENTIATORS ============ -->
+  <div class="section">
+    <div class="section-label">08 — Competitive Differentiators</div>
+    <h2>Why we win</h2>
+    <div class="grid-2" style="margin-top:20px">
+      <div class="diff-item" data-num="01">
+        <div class="diff-icon">💬</div>
+        <div class="diff-title">Conversational AI Tab</div>
+        <div class="diff-desc">No other team ships a live Q&A chat over the codebase. When judges ask "can you find where authentication happens?" — we type it and get an answer in 3 seconds.</div>
+      </div>
+      <div class="diff-item" data-num="02">
+        <div class="diff-icon">🔮</div>
+        <div class="diff-title">Visual Dependency Graph</div>
+        <div class="diff-desc">Interactive D3.js force graph. Click a node, highlight all connected files. Zoom, pan, filter. Static trees are boring — ours is alive.</div>
+      </div>
+      <div class="diff-item" data-num="03">
+        <div class="diff-icon">⚡</div>
+        <div class="diff-title">Criticality Scoring</div>
+        <div class="diff-desc">Files are scored and ranked by import frequency + logic density. Top 5 are highlighted red. Judges immediately understand which files matter most without reading code.</div>
+      </div>
+      <div class="diff-item" data-num="04">
+        <div class="diff-icon">🎯</div>
+        <div class="diff-title">Language-Agnostic Design</div>
+        <div class="diff-desc">Works on Node.js, Python, React, Java — the judge's mystery repo won't catch us off guard. Language is detected first; appropriate AST parser is selected automatically.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ JUDGING MAP ============ -->
+  <div class="section">
+    <div class="section-label">09 — Judging Criteria Map</div>
+    <h2>How we score</h2>
+    <div class="card" style="margin-top:20px">
+      <table>
+        <thead><tr><th>Criteria</th><th>Weight</th><th>Our Strategy</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><strong>Accuracy of analysis output</strong></td>
+            <td><span style="color:var(--teal);font-weight:700;font-family:var(--mono)">30%</span><span class="score-bar" style="width:90px"></span></td>
+            <td>AST-based extraction (not regex) ensures accuracy. Gemini adds reasoning, not guessing.</td>
+          </tr>
+          <tr>
+            <td><strong>Mandatory feature completeness</strong></td>
+            <td><span style="color:var(--teal);font-weight:700;font-family:var(--mono)">30%</span><span class="score-bar" style="width:90px"></span></td>
+            <td>M1, M2, M3 are locked in by Hour 5. Non-negotiable. All three with visual output.</td>
+          </tr>
+          <tr>
+            <td><strong>Demo quality and usability</strong></td>
+            <td><span style="color:var(--amber);font-weight:700;font-family:var(--mono)">20%</span><span class="score-bar" style="width:60px;background:var(--amber)"></span></td>
+            <td>Dark pro UI, loading animations, pre-loaded demo repos, 3 diverse examples ready.</td>
+          </tr>
+          <tr>
+            <td><strong>Innovation / bonus features</strong></td>
+            <td><span style="color:var(--amber);font-weight:700;font-family:var(--mono)">20%</span><span class="score-bar" style="width:60px;background:var(--amber)"></span></td>
+            <td>B1 + B3 + conversational AI tab. The chat panel alone should max this out.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div style="margin-top:12px;font-family:var(--mono);font-size:12px;color:var(--text-muted);text-align:center">
+      Projected score ceiling: <span style="color:var(--teal)">~95/100</span> if RAG panel works end-to-end
+    </div>
+  </div>
+
+  <!-- ============ RISKS ============ -->
+  <div class="section">
+    <div class="section-label">10 — Risk Register</div>
+    <h2>Know before you go</h2>
+    <div class="card" style="margin-top:20px">
+      <div class="risk-item">
+        <div class="risk-level risk-high">HIGH</div>
+        <div class="risk-text"><strong>RAG pipeline takes too long to build.</strong> Mitigation: Build Ask AI last. If it's not ready, demo M1+M2+M3+B3 summary without it. Still competitive.</div>
+      </div>
+      <div class="risk-item">
+        <div class="risk-level risk-high">HIGH</div>
+        <div class="risk-text"><strong>Judge's mystery repo uses an unexpected language.</strong> Mitigation: Add Ruby + Go entry point heuristics early. Fallback: file extension detection + Gemini analysis still works.</div>
+      </div>
+      <div class="risk-item">
+        <div class="risk-level risk-med">MED</div>
+        <div class="risk-text"><strong>Gemini API rate limits during demo.</strong> Mitigation: Cache all analysis results after first run. Demo repos are pre-cached before presentation.</div>
+      </div>
+      <div class="risk-item">
+        <div class="risk-level risk-med">MED</div>
+        <div class="risk-text"><strong>Large repos take too long to clone + analyse.</strong> Mitigation: Cap at 1000 files. Shallow clone (depth=1). Show progress bar so judges see it working, not frozen.</div>
+      </div>
+      <div class="risk-item">
+        <div class="risk-level risk-low">LOW</div>
+        <div class="risk-text"><strong>d3.js force graph looks cluttered on a huge repo.</strong> Mitigation: Filter to top 50 most-connected files by default. Toggle to show all.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ DEMO SCRIPT ============ -->
+  <div class="section">
+    <div class="section-label">11 — 5-Minute Demo Script</div>
+    <h2>The pitch</h2>
+    <div class="timeline" style="margin-top:24px">
+      <div class="tl-item">
+        <div class="tl-time">0:00 – 0:30</div>
+        <div class="tl-title">The Hook</div>
+        <div class="tl-desc">"Imagine your senior dev just quit. Here’s 40,000 lines of undocumented code. Watch what happens when I paste the GitHub URL into CodeAura." Paste URL. Hit Analyse. Let the loading animation breathe.</div>
+      </div>
+      <div class="tl-item amber">
+        <div class="tl-time">0:30 – 1:30</div>
+        <div class="tl-title">Walk M1, M2, M3</div>
+        <div class="tl-desc">Click through the three tabs. Point at the folder explanations ("look — it tells you what each directory does"). Show the execution flow. Click two nodes in the dependency graph and trace the path.</div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-time">1:30 – 3:00</div>
+        <div class="tl-title">Ask AI — The Showstopper</div>
+        <div class="tl-desc">Switch to the Ask tab. Type: "Where does authentication happen and which files do I need to read?" Watch Gemini answer with file references. Ask a second question. Let the judges pick one.</div>
+      </div>
+      <div class="tl-item amber">
+        <div class="tl-time">3:00 – 4:00</div>
+        <div class="tl-title">Bonus Features</div>
+        <div class="tl-desc">Show the B3 AI summary card. Point at the red critical file badges. Open B2 execution trace for one route. Speed through it — impact per second.</div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-time">4:00 – 5:00</div>
+        <div class="tl-title">Close + Judge's Mystery Repo</div>
+        <div class="tl-desc">"Onboarding went from days to minutes. And to prove it's not just our demo repo —" hand the URL input to the judge. Their repo. Live. Confidence close.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- ============ FOOTER ============ -->
+  <footer>
+    <div>
+      <div class="footer-brand">Code<span class="accent">Aura</span></div>
+      <div style="font-family:var(--mono);font-size:11px;color:var(--text-dim);margin-top:4px">by Team Aura · Hackathon 2025</div>
+    </div>
+    <div style="text-align:right">
+      <div class="footer-meta">Solution Document v1.0</div>
+      <div class="footer-meta">AI-Powered Codebase Intelligence Agent</div>
+      <div class="footer-meta" style="color:var(--teal);margin-top:4px">Built to win. Designed to impress.</div>
+    </div>
+  </footer>
+
+</div>
+</body>
+</html>
