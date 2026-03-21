@@ -229,14 +229,22 @@ export default function App() {
               <div>
                 <div className="mono" style={{ fontSize: 10, color: 'var(--blue)', letterSpacing: '0.1em', marginBottom: 8 }}>M2 EXECUTION CHAIN</div>
                 <div style={{ background: '#050709', padding: 16, borderRadius: 8, border: '1px solid var(--border)' }}>
-                  {entryPoint?.executionChain?.slice(0, 5).map((chain, i) => (
-                    <div key={i} style={{ display: 'flex', gap: 10, alignItems: 'flex-start', padding: 8 }}>
-                      <span className="mono" style={{ color: 'var(--text-dim)', fontSize: 10 }}>{String(i + 1).padStart(2, '0')}</span>
-                      <span className="mono" style={{ color: '#8ba8c8', fontSize: 11 }}>{chain.file}</span>
+                  {(!entryPoint?.executionChain || entryPoint.executionChain.length === 0) ? (
+                    <div className="mono" style={{ color: 'var(--text-dim)', fontSize: 11, textAlign: 'center', padding: '10px 0' }}>
+                      No execution chain mapped.
                     </div>
-                  ))}
-                  {entryPoint?.executionChain?.length > 5 && (
-                    <div className="mono" style={{ padding: '0 8px 8px', color: 'var(--text-dim)', fontSize: 10 }}>+ {entryPoint.executionChain.length - 5} more files</div>
+                  ) : (
+                    <>
+                      {entryPoint.executionChain.slice(0, 5).map((chain, i) => (
+                        <div key={i} style={{ display: 'flex', gap: 10, alignItems: 'flex-start', padding: 8 }}>
+                          <span className="mono" style={{ color: 'var(--text-dim)', fontSize: 10 }}>{String(i + 1).padStart(2, '0')}</span>
+                          <span className="mono" style={{ color: '#8ba8c8', fontSize: 11 }}>{chain.file}</span>
+                        </div>
+                      ))}
+                      {entryPoint.executionChain.length > 5 && (
+                        <div className="mono" style={{ padding: '0 8px 8px', color: 'var(--text-dim)', fontSize: 10 }}>+ {entryPoint.executionChain.length - 5} more files</div>
+                      )}
+                    </>
                   )}
                 </div>
               </div>
