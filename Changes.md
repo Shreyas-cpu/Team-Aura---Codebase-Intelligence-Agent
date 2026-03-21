@@ -45,4 +45,24 @@
 
 ## [2026-03-21T11:33:46+05:30] — Phase 4: RAG Pipeline / Ask AI ✅
 - Branch: `feat/rag-ask-ai`
+- Created `backend/services/rag.service.js` — T-05: chunk codebase (800 chars, 100 overlap, 500 file cap), Gemini text-embedding-004, cosine similarity search with keyword fallback, Gemini 2.5 Flash answer generation
+- Created `backend/routes/chat.routes.js` — `POST /api/chat` endpoint (sessionId, localPath, message → RAG answer)
+- In-memory session store with auto-indexing on first query
+- **Tested pipeline**: Clone → chunk → search → answer (Gemini requires valid API key for full end-to-end)
+- Commit: `feat(rag): codebase chunking, Gemini embeddings + /api/chat endpoint`
+
+## [2026-03-21T11:48:05+05:30] — Phase 5: Bonus B1 + B3 ✅
+- Branch: `feat/bonus-b1-b3`
+- Created `backend/services/bonus.service.js` — B1 critical scoring + B3 AI summary
+- Added `/api/analyze/critical` and `/api/analyze/summary` endpoints
+- **Tested B1 on `expressjs/express`**: Top 5 scored correctly
+- Commit: `feat(B1+B3): critical file scoring + AI repo summary`
+
+## [2026-03-21T12:00:24+05:30] — Phase 6: Caching + Performance ✅
+- Branch: `feat/caching-v2` (rebased from `bonus-b1-b3` to include all merged features)
+- Created `backend/services/cache.service.js` — T-10: In-memory cache (30 min TTL), 5000-file size limit check
+- Created `backend/routes/preload.routes.js` — `/api/preload` endpoint clones and analyzes 3 demo repos concurrently, caching results. Includes `/api/preload/status` and `/api/preload/clear`.
+- Wired all routes into `backend/index.js` (v0.6.0)
+- **Tested pipeline**: `/api/preload` successfully cached express, fastapi, and realworld repos
+- Commit: `feat(caching): add cache routes, services and preload endpoint`
 
