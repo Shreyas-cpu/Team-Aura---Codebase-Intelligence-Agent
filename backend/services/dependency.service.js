@@ -221,33 +221,49 @@ function findRequireCalls(node, imports) {
 }
 
 function resolveImport(importPath, sourceFile, repoPath) {
+  const ext = path.extname(sourceFile);
+  const isC = ['.c', '.cpp', '.h', '.hpp'].includes(ext);
+
   // Only resolve relative imports (skip npm packages)
   if (!importPath.startsWith('.') && !importPath.startsWith('/')) {
-    // For Python relative imports (starting with dots)
-    if (path.extname(sourceFile) === '.py' && importPath.startsWith('.')) {
+    if (ext === '.py' && importPath.startsWith('.')) {
       // Handle Python relative imports
+    } else if (isC) {
+      // Allow C/C++ includes (e.g. nvim/api.h)
     } else {
       return null;
     }
   }
 
   const sourceDir = path.dirname(sourceFile);
-  let resolved = path.resolve(sourceDir, importPath);
-
-  // Try file extensions
-  const tryExts = ['.js', '.jsx', '.ts', '.tsx', '.mjs', '.cjs', '.py', '.c', '.cpp', '.h', '.hpp', ''];
-  for (const ext of tryExts) {
-    const tryPath = resolved + ext;
-    if (fs.existsSync(tryPath) && fs.statSync(tryPath).isFile()) {
-      return tryPath;
-    }
+  
+  // Potential resolution base paths for C/C++
+  const bases = [sourceDir];
+  if (isC) {
+    bases.push(repoPath);
+    bases.push(path.join(repoPath, 'src'));
+    bases.push(path.join(repoPath, 'include'));
   }
 
-  // Try index files in directory
-  const indexFiles = ['index.js', 'index.ts', 'index.jsx', 'index.tsx', '__init__.py'];
-  for (const idx of indexFiles) {
-    const tryPath = path.join(resolved, idx);
-    if (fs.existsSync(tryPath)) return tryPath;
+  const tryExts = ['.js', '.jsx', '.ts', '.tsx', '.mjs', '.cjs', '.py', '.c', '.cpp', '.h', '.hpp', ''];
+
+  for (const base of bases) {
+    let resolved = path.resolve(base, importPath);
+    
+    // Try file extensions
+    for (const tryExt of tryExts) {
+      const tryPath = resolved + tryExt;
+      if (fs.existsSync(tryPath) && fs.statSync(tryPath).isFile()) {
+        return tryPath;
+      }
+    }
+    
+    // Try index files in directory
+    const indexFiles = ['index.js', 'index.ts', 'index.jsx', 'index.tsx', '__init__.py'];
+    for (const idx of indexFiles) {
+      const tryPath = path.join(resolved, idx);
+      if (fs.existsSync(tryPath)) return tryPath;
+    }
   }
 
   return null;
