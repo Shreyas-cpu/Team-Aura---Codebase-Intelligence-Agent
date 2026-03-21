@@ -171,3 +171,7 @@ new and fresh api key
 [2026-03-21T19:07:43+05:30]
 AI service is temporarily unavailable. Please try again.
 still
+
+[2026-03-21T19:29:34+05:30]
+AIzaSyA4H0a7gwQSeByFxGc1qm40qQ0igYjPtiQ
+try this one test befor doing
