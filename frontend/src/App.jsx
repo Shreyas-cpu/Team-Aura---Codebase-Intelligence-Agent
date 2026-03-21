@@ -327,8 +327,8 @@ export default function App() {
               <div className="card-blue" style={{ padding: 24 }}>
                 <div className="ui-panel-title" style={{color: 'var(--blue)'}}>ENTRY FILE</div>
                 <div className="ui-tree-item" style={{color: '#8ba8c8', fontWeight: 700, fontSize: 13}}>{entryPoint.entryFile}</div>
-                <div className="ui-panel-title" style={{color: 'var(--text-dim)', marginTop: 24}}>LANGUAGE</div>
-                <div className="ui-tree-item" style={{fontSize: 13}}>{entryPoint.language}</div>
+                <div className="ui-panel-title" style={{color: 'var(--blue)', marginTop: 24}}>LANGUAGE</div>
+                <div className="ui-tree-item" style={{color: '#8ba8c8', fontSize: 13}}>{entryPoint.language}</div>
               </div>
               <div className="card-base">
                 <div className="ui-panel-title" style={{color: 'var(--blue)'}}>▸ EXECUTION CHAIN</div>

@@ -175,3 +175,6 @@ still
 [2026-03-21T19:29:34+05:30]
 AIzaSyA4H0a7gwQSeByFxGc1qm40qQ0igYjPtiQ
 try this one test befor doing
+
+[2026-03-21T19:38:43+05:30]
+LANGUAGE in Entry Point (M2) are not appering properly
