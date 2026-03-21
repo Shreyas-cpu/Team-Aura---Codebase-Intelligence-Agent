@@ -249,21 +249,20 @@ function resolveImport(importPath, sourceFile, repoPath) {
 
   for (const base of bases) {
     let resolved = path.resolve(base, importPath);
-    
-    // Try file extensions
     for (const tryExt of tryExts) {
       const tryPath = resolved + tryExt;
       if (fs.existsSync(tryPath) && fs.statSync(tryPath).isFile()) {
         return tryPath;
       }
     }
-    
-    // Try index files in directory
-    const indexFiles = ['index.js', 'index.ts', 'index.jsx', 'index.tsx', '__init__.py'];
-    for (const idx of indexFiles) {
-      const tryPath = path.join(resolved, idx);
-      if (fs.existsSync(tryPath)) return tryPath;
-    }
+  }
+
+  // Try index files in directory (fallback to sourceDir base)
+  let resolvedBase = path.resolve(sourceDir, importPath);
+  const indexFiles = ['index.js', 'index.ts', 'index.jsx', 'index.tsx', '__init__.py'];
+  for (const idx of indexFiles) {
+    const tryPath = path.join(resolvedBase, idx);
+    if (fs.existsSync(tryPath)) return tryPath;
   }
 
   return null;
