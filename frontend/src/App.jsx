@@ -3,6 +3,7 @@ import axios from 'axios';
 import { Terminal, FolderGit2, Cpu, GitBranch, MessageSquare, AlertTriangle, CheckCircle2, ChevronRight, Hash, ShieldAlert, Sparkles, Home, Box, Link2, Zap } from 'lucide-react';
 import clsx from 'clsx';
 import { twMerge } from 'tailwind-merge';
+import ReactMarkdown from 'react-markdown';
 
 const API_BASE = 'http://localhost:3001/api';
 
@@ -44,62 +45,186 @@ function FolderTree({ folders, topFiles }) {
   );
 }
 
-// Native interactive dependency graph SVG renderer
-function DependencyGraphVis({ nodes, edges }) {
-  const width = 800;
-  const height = 400;
-  const cx = width / 2;
-  const cy = height / 2;
-  const radius = Math.min(cx, cy) - 50;
+// Color map by file extension
+function getNodeColor(node) {
+  if (node.type === 'external') return '#6b7280'; // gray
+  const ext = node.extension;
+  if (['.ts', '.tsx'].includes(ext)) return '#b57bee'; // purple
+  if (['.js', '.jsx', '.mjs', '.cjs'].includes(ext)) return '#4fa3ff'; // blue
+  if (ext === '.py') return '#00e6aa'; // teal
+  if (['.c', '.cpp', '.h', '.hpp'].includes(ext)) return '#f5a623'; // amber
+  if (['.java'].includes(ext)) return '#ff6b6b'; // red
+  if (ext === '.go') return '#67e8f9'; // cyan
+  return '#94a3b8'; // slate
+}
 
-  const placedNodes = nodes.map((node, i) => {
-    const angle = (i / nodes.length) * 2 * Math.PI;
-    return {
-      ...node,
-      x: cx + radius * Math.cos(angle),
-      y: cy + radius * Math.sin(angle)
-    };
-  });
+// Tiered / Layered Dependency Graph
+function DependencyGraphVis({ nodes, edges }) {
+  const [hoveredId, setHoveredId] = useState(null);
+
+  if (!nodes || nodes.length === 0) {
+    return (
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 300, color: 'var(--text-muted)', fontFamily: 'var(--mono)', fontSize: 12 }}>
+        No dependency data available.
+      </div>
+    );
+  }
+
+
+  // Assign tiers based on importedByCount
+  // Tier 0 (top): importedByCount >= highest 33%
+  // Tier 1 (mid): importedByCount > 0
+  // Tier 2 (bottom): importedByCount === 0 (leaf importers)
+  const maxCount = Math.max(...nodes.map(n => n.importedByCount), 1);
+  const tierThreshold = Math.ceil(maxCount * 0.33);
+
+  const tier0 = nodes.filter(n => n.importedByCount >= tierThreshold && n.importedByCount > 0);
+  const tier1 = nodes.filter(n => n.importedByCount > 0 && n.importedByCount < tierThreshold);
+  const tier2 = nodes.filter(n => n.importedByCount === 0);
+
+  const NODE_W = 110;
+  const NODE_H = 28;
+  const H_GAP = 18;
+  const V_GAP = 70;
+  const PADDING = 30;
+
+  function layoutTier(tierNodes, y) {
+    const totalWidth = tierNodes.length * (NODE_W + H_GAP) - H_GAP;
+    return tierNodes.map((n, i) => ({
+      ...n,
+      x: PADDING + i * (NODE_W + H_GAP),
+      y,
+      tierWidth: totalWidth
+    }));
+  }
+
+  const placed0 = layoutTier(tier0, PADDING);
+  const placed1 = layoutTier(tier1, PADDING + NODE_H + V_GAP);
+  const placed2 = layoutTier(tier2, PADDING + NODE_H + V_GAP * 2 + NODE_H);
+
+  const allPlaced = [...placed0, ...placed1, ...placed2];
+  const placedMap = new Map(allPlaced.map(n => [n.id, n]));
+
+  const maxTierWidth = Math.max(
+    tier0.length * (NODE_W + H_GAP),
+    tier1.length * (NODE_W + H_GAP),
+    tier2.length * (NODE_W + H_GAP),
+    400
+  );
+  const svgWidth = maxTierWidth + PADDING * 2;
+  const svgHeight = PADDING + NODE_H + V_GAP * 2 + NODE_H + PADDING + 40;
+
+  const hoveredEdges = hoveredId != null
+    ? new Set(edges.filter(e => e.source === hoveredId || e.target === hoveredId).map(e => `${e.source}-${e.target}`))
+    : null;
 
   return (
-    <svg width="100%" height="100%" viewBox={`0 0 ${width} ${height}`} style={{ position: 'absolute', top: 0, left: 0 }}>
-      {/* Draw edges curving through the center */}
-      {edges.map((edge, i) => {
-        const source = placedNodes.find(n => n.id === edge.source);
-        const target = placedNodes.find(n => n.id === edge.target);
-        if (!source || !target) return null;
-        return (
-          <path
-            key={i}
-            d={`M ${source.x} ${source.y} Q ${cx} ${cy} ${target.x} ${target.y}`}
-            fill="transparent"
-            stroke="rgba(181,123,238,0.15)"
-            strokeWidth={1}
-          />
-        );
-      })}
-      
-      {/* Draw nodes */}
-      {placedNodes.map((node, i) => (
-        <circle
-          key={i}
-          cx={node.x}
-          cy={node.y}
-          r={node.importedByCount > 5 ? 5 : 3}
-          fill={['.h', '.hpp', '.c', '.cpp'].includes(node.extension) ? 'var(--teal)' : 'var(--purple)'}
-          stroke="var(--bg)"
-          strokeWidth={1}
-        >
-          <title>{node.path} (Imported by: {node.importedByCount})</title>
-        </circle>
-      ))}
-      
-      {/* Center Label */}
-      <circle cx={cx} cy={cy} r={30} fill="rgba(181,123,238,0.05)" stroke="rgba(181,123,238,0.2)" strokeWidth={1} />
-      <text x={cx} y={cy + 4} textAnchor="middle" fill="var(--text-dim)" fontSize={11} fontFamily="var(--mono)">
-        {nodes.length} nodes
-      </text>
-    </svg>
+    <div style={{ overflowX: 'auto', overflowY: 'auto', maxHeight: 480, position: 'relative' }}>
+      {/* Legend */}
+      <div style={{ display: 'flex', gap: 14, padding: '8px 16px', flexWrap: 'wrap', borderBottom: '1px solid var(--border-soft)' }}>
+        {[['JS/JSX', '#4fa3ff'], ['TS/TSX', '#b57bee'], ['Python', '#00e6aa'], ['C/C++', '#f5a623'], ['Java', '#ff6b6b'], ['Go', '#67e8f9'], ['External', '#6b7280']].map(([label, color]) => (
+          <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 5, fontFamily: 'var(--mono)', fontSize: 10, color: 'var(--text-muted)' }}>
+            <div style={{ width: 10, height: 10, borderRadius: 2, background: color, opacity: 0.85 }} />
+            {label}
+          </div>
+        ))}
+        {tier0.length > 0 && <div style={{ fontFamily: 'var(--mono)', fontSize: 10, color: '#b57bee', marginLeft: 'auto' }}>Top row = most depended-on</div>}
+      </div>
+
+      <svg
+        width={svgWidth}
+        height={svgHeight}
+        style={{ display: 'block' }}
+      >
+        {/* Arrow marker */}
+        <defs>
+          <marker id="arrowhead" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+            <polygon points="0 0, 8 3, 0 6" fill="rgba(181,123,238,0.6)" />
+          </marker>
+          <marker id="arrowhead-hi" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+            <polygon points="0 0, 8 3, 0 6" fill="#b57bee" />
+          </marker>
+        </defs>
+
+        {/* Tier labels */}
+        {tier0.length > 0 && <text x={PADDING} y={PADDING - 8} fill="rgba(181,123,238,0.5)" fontSize={9} fontFamily="var(--mono)" letterSpacing="0.08em">CORE MODULES</text>}
+        {tier1.length > 0 && <text x={PADDING} y={PADDING + NODE_H + V_GAP - 8} fill="rgba(255,255,255,0.18)" fontSize={9} fontFamily="var(--mono)" letterSpacing="0.08em">IMPORTERS</text>}
+        {tier2.length > 0 && <text x={PADDING} y={PADDING + NODE_H + V_GAP * 2 + NODE_H - 8} fill="rgba(255,255,255,0.1)" fontSize={9} fontFamily="var(--mono)" letterSpacing="0.08em">LEAVES</text>}
+
+        {/* Edges */}
+        {edges.map((edge, i) => {
+          const src = placedMap.get(edge.source);
+          const tgt = placedMap.get(edge.target);
+          if (!src || !tgt) return null;
+          const key = `${edge.source}-${edge.target}`;
+          const isHi = hoveredEdges ? hoveredEdges.has(key) : false;
+          const x1 = src.x + NODE_W / 2;
+          const y1 = src.y + NODE_H;
+          const x2 = tgt.x + NODE_W / 2;
+          const y2 = tgt.y;
+          // Shorten line so arrowhead doesn't overlap node
+          const dx = x2 - x1, dy = y2 - y1;
+          const len = Math.sqrt(dx * dx + dy * dy) || 1;
+          const sx = x1 + (dx / len) * 4;
+          const ex = x2 - (dx / len) * 8;
+          const sy = y1 + (dy / len) * 4;
+          const ey = y2 - (dy / len) * 8;
+          return (
+            <line
+              key={i}
+              x1={sx} y1={sy} x2={ex} y2={ey}
+              stroke={isHi ? 'rgba(181,123,238,0.9)' : 'rgba(181,123,238,0.18)'}
+              strokeWidth={isHi ? 1.5 : 0.8}
+              markerEnd={isHi ? 'url(#arrowhead-hi)' : 'url(#arrowhead)'}
+            />
+          );
+        })}
+
+        {/* Nodes */}
+        {allPlaced.map(node => {
+          const color = getNodeColor(node);
+          const isHovered = node.id === hoveredId;
+          const isRelated = hoveredEdges ? (hoveredEdges.size > 0 && [...hoveredEdges].some(k => k.startsWith(`${node.id}->`) || k.endsWith(`->${node.id}`))) : false;
+          const label = node.label.length > 14 ? node.label.slice(0, 12) + '…' : node.label;
+          return (
+            <g key={node.id}
+              style={{ cursor: 'pointer' }}
+              onMouseEnter={() => setHoveredId(node.id)}
+              onMouseLeave={() => setHoveredId(null)}
+            >
+              {/* Node box */}
+              <rect
+                x={node.x} y={node.y}
+                width={NODE_W} height={NODE_H}
+                rx={5} ry={5}
+                fill={isHovered ? `${color}22` : 'rgba(10,12,18,0.85)'}
+                stroke={isHovered || isRelated ? color : `${color}55`}
+                strokeWidth={isHovered ? 1.5 : 0.8}
+              />
+              {/* Color indicator bar on left */}
+              <rect x={node.x} y={node.y} width={4} height={NODE_H} rx={3} fill={color} opacity={0.8} />
+              {/* Label */}
+              <text
+                x={node.x + 12} y={node.y + 17}
+                fill={isHovered ? '#ffffff' : 'rgba(255,255,255,0.75)'}
+                fontSize={10}
+                fontFamily="var(--mono)"
+              >
+                {label}
+              </text>
+              {/* importedByCount badge */}
+              {node.importedByCount > 0 && (
+                <text x={node.x + NODE_W - 5} y={node.y + 17} textAnchor="end" fill={color} fontSize={9} fontFamily="var(--mono)" opacity={0.7}>
+                  ×{node.importedByCount}
+                </text>
+              )}
+              {/* Tooltip (title) */}
+              <title>{node.path}\nType: {node.type}\nImported by: {node.importedByCount} file(s)</title>
+            </g>
+          );
+        })}
+      </svg>
+    </div>
   );
 }
 
@@ -430,36 +555,50 @@ export default function App() {
         return (
           <div className="animate-fade-right" style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 24 }}>
             <h2 style={{ marginBottom: 8 }}>Dependency Graph (M3)</h2>
-            <p className="ui-desc" style={{ marginBottom: 24 }}>Module linkage statistics and architectural visualizer.</p>
-            
-            <div style={{ display: 'grid', gridTemplateColumns: 'minmax(240px, 300px) 1fr', gap: 24 }}>
-              <div className="card-purple" style={{ padding: 24 }}>
-                <div className="ui-panel-title" style={{color: '#b57bee'}}>GRAPH STATS</div>
-                <div style={{ fontSize: 36, fontWeight: 800, color: 'var(--text)', marginTop: 8 }}>
-                  {dependencies.nodes?.length || 0}
-                </div>
-                <div className="ui-tree-item" style={{marginLeft: 0, paddingLeft: 0, textTransform: 'uppercase', fontSize: 10}}>Nodes Parsed</div>
+            <p className="ui-desc" style={{ marginBottom: 24 }}>Module linkage map showing import relationships between internal files and external packages.</p>
 
-                <div style={{ fontSize: 36, fontWeight: 800, color: 'var(--text)', marginTop: 32 }}>
-                  {dependencies.edges?.length || 0}
-                </div>
-                <div className="ui-tree-item" style={{marginLeft: 0, paddingLeft: 0, textTransform: 'uppercase', fontSize: 10}}>Graph Edges</div>
-
-                <div className="mono" style={{ fontSize: 10, color: '#b57bee', marginTop: 32, opacity: 0.8, lineHeight: 1.6 }}>
-                  {dependencies.capped && "Notice: Graph capped at 100 most connected nodes to maintain visual performance."}
-                </div>
+            {/* Stats row */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16 }}>
+              <div className="card-purple" style={{ padding: 20, textAlign: 'center' }}>
+                <div style={{ fontSize: 32, fontWeight: 800, color: '#b57bee' }}>{dependencies.nodes?.length || 0}</div>
+                <div className="mono" style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 4, letterSpacing: '0.08em' }}>NODES IN GRAPH</div>
               </div>
+              <div className="card-base" style={{ padding: 20, textAlign: 'center' }}>
+                <div style={{ fontSize: 32, fontWeight: 800, color: 'var(--text)' }}>{dependencies.edges?.length || 0}</div>
+                <div className="mono" style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 4, letterSpacing: '0.08em' }}>DEPENDENCY EDGES</div>
+              </div>
+              <div className="card-base" style={{ padding: 20, textAlign: 'center' }}>
+                <div style={{ fontSize: 32, fontWeight: 800, color: 'var(--text)' }}>{dependencies.totalFiles || 0}</div>
+                <div className="mono" style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 4, letterSpacing: '0.08em' }}>TOTAL SOURCE FILES</div>
+              </div>
+            </div>
 
-              <div className="card-base" style={{ minHeight: 400, position: 'relative', overflow: 'hidden' }}>
-                <div className="ui-panel-title" style={{color: '#b57bee', position: 'absolute', top: 24, left: 24, zIndex: 10}}>▸ VISUAL DEPENDENCY MAP</div>
-                
-                {(!dependencies.nodes || dependencies.nodes.length === 0) ? (
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: 'var(--text-muted)' }}>
-                    No dependency data available.
+            {dependencies.capped && (
+              <div className="mono" style={{ fontSize: 11, color: '#b57bee', background: 'rgba(181,123,238,0.06)', border: '1px solid rgba(181,123,238,0.15)', borderRadius: 6, padding: '8px 14px' }}>
+                ⚠ Graph focuses on top {dependencies.cappedAt} most-imported nodes (out of {dependencies.totalNodes}). Leaf-only isolated files are excluded.
+              </div>
+            )}
+
+            {/* Graph */}
+            <div className="card-base" style={{ padding: 0, overflow: 'hidden' }}>
+              <div className="ui-panel-title" style={{ color: '#b57bee', padding: '20px 24px 0' }}>▸ VISUAL DEPENDENCY MAP</div>
+              <div style={{ padding: '12px 0 8px' }}>
+                <DependencyGraphVis nodes={dependencies.nodes} edges={dependencies.edges} />
+              </div>
+            </div>
+
+            {/* Node list table */}
+            <div className="card-base">
+              <div className="ui-panel-title" style={{ color: '#b57bee', marginBottom: 12 }}>▸ NODE DIRECTORY</div>
+              <div style={{ display: 'grid', gap: 6, maxHeight: 300, overflowY: 'auto' }}>
+                {(dependencies.nodes || []).map((n, i) => (
+                  <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '6px 10px', background: 'var(--bg3)', borderRadius: 6, border: '1px solid var(--border-soft)' }}>
+                    <div style={{ width: 8, height: 8, borderRadius: 2, flexShrink: 0, background: getNodeColor(n) }} />
+                    <span className="mono" style={{ fontSize: 11, color: 'var(--text)', flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{n.path}</span>
+                    <span style={{ fontSize: 10, padding: '2px 7px', borderRadius: 4, background: 'rgba(181,123,238,0.08)', border: '1px solid rgba(181,123,238,0.15)', color: '#b57bee', fontFamily: 'var(--mono)', flexShrink: 0 }}>×{n.importedByCount}</span>
+                    {n.type === 'external' && <span style={{ fontSize: 9, color: '#6b7280', fontFamily: 'var(--mono)', flexShrink: 0 }}>ext</span>}
                   </div>
-                ) : (
-                  <DependencyGraphVis nodes={dependencies.nodes} edges={dependencies.edges} />
-                )}
+                ))}
               </div>
             </div>
           </div>
@@ -479,7 +618,7 @@ export default function App() {
               <div className="card-base">
                 <div className="ui-panel-title" style={{color: 'var(--amber)'}}>▸ TOP CRITICAL FILES (B1)</div>
                 <div style={{ display: 'grid', gap: 12 }}>
-                  {criticalFiles?.topFiles?.map((f, i) => (
+                  {(Array.isArray(criticalFiles) ? criticalFiles : []).map((f, i) => (
                     <div key={i} style={{ background: 'var(--bg3)', padding: 16, borderRadius: 8, border: '1px solid var(--border)' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                         <span className="mono" style={{ color: 'var(--text)', fontSize: 13 }}>{f.path}</span>
@@ -487,7 +626,7 @@ export default function App() {
                       </div>
                       <div style={{ marginTop: 10, display: 'flex', gap: 8 }}>
                         <span style={{ fontSize: 10, padding: '4px 8px', background: 'rgba(255,166,35,0.06)', borderRadius: 4, fontFamily: 'var(--mono)', color: 'var(--amber)' }}>
-                          x{f.importedBy} imports
+                          x{f.importedByCount} imports
                         </span>
                       </div>
                     </div>
@@ -510,7 +649,35 @@ export default function App() {
                {chatHistory.map((msg, i) => (
                  <div key={i} style={{ display: 'flex', flexDirection: 'column', alignItems: msg.role === 'user' ? 'flex-end' : 'flex-start' }}>
                    <div className={msg.role === 'user' ? 'chat-msg-user' : 'chat-msg-ai'}>
-                     {msg.text}
+                     {msg.role === 'user' ? (
+                       msg.text
+                     ) : (
+                       <div className="md-body">
+                         <ReactMarkdown
+                           components={{
+                             h1: ({node, ...props}) => <h1 className="md-h1" {...props} />,
+                             h2: ({node, ...props}) => <h2 className="md-h2" {...props} />,
+                             h3: ({node, ...props}) => <h3 className="md-h3" {...props} />,
+                             h4: ({node, ...props}) => <h4 className="md-h4" {...props} />,
+                             p:  ({node, ...props}) => <p  className="md-p"  {...props} />,
+                             strong: ({node, ...props}) => <strong className="md-strong" {...props} />,
+                             em: ({node, ...props}) => <em className="md-em" {...props} />,
+                             ul: ({node, ...props}) => <ul className="md-ul" {...props} />,
+                             ol: ({node, ...props}) => <ol className="md-ol" {...props} />,
+                             li: ({node, ...props}) => <li className="md-li" {...props} />,
+                             code: ({node, inline, className, children, ...props}) =>
+                               inline
+                                 ? <code className="md-inline-code" {...props}>{children}</code>
+                                 : <pre className="md-pre"><code className="md-code" {...props}>{children}</code></pre>,
+                             blockquote: ({node, ...props}) => <blockquote className="md-blockquote" {...props} />,
+                             hr: () => <hr className="md-hr" />,
+                             a: ({node, ...props}) => <a className="md-a" target="_blank" rel="noreferrer" {...props} />,
+                           }}
+                         >
+                           {msg.text}
+                         </ReactMarkdown>
+                       </div>
+                     )}
                      {msg.sources && msg.sources.length > 0 && (
                        <div style={{ marginTop: 12, display: 'flex', gap: 6, flexWrap: 'wrap' }}>
                          {msg.sources.map(s => (

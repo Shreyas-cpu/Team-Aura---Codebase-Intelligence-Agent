@@ -1,280 +1,452 @@
-const path = require('path');
-const fs = require('fs');
-const acorn = require('acorn');
+const path = require("path");
+const fs = require("fs");
 
 const IGNORE_DIRS = new Set([
-  'node_modules', '.git', 'dist', 'build', '.next',
-  'venv', '__pycache__', '.venv', 'env', '.cache',
-  'coverage', '.nyc_output', 'target', 'out'
+  "node_modules",
+  ".git",
+  "dist",
+  "build",
+  ".next",
+  "venv",
+  "__pycache__",
+  ".venv",
+  "env",
+  ".cache",
+  "coverage",
+  ".nyc_output",
+  "target",
+  "out",
+  ".idea",
+  ".vs",
 ]);
 
 const SOURCE_EXTENSIONS = new Set([
-  '.js', '.jsx', '.ts', '.tsx', '.mjs', '.cjs',
-  '.py', '.rb', '.go', '.java', '.cs',
-  '.c', '.cpp', '.h', '.hpp'
+  ".js",
+  ".jsx",
+  ".ts",
+  ".tsx",
+  ".mjs",
+  ".cjs",
+  ".py",
+  ".rb",
+  ".go",
+  ".java",
+  ".cs",
+  ".c",
+  ".cpp",
+  ".h",
+  ".hpp",
 ]);
 
+// Max nodes to show in the graph (focus on important ones)
+const MAX_GRAPH_NODES = 40;
+
 /**
- * T-04: M3 — AST Import Extraction + Dependency Graph
- * buildDependencyGraph(repoPath) → { nodes:[], edges:[] }
+ * M3 — Dependency Graph via text-based import scanning
+ * Scans for `import`, `from`, `require`, `#include` keywords
+ * Returns: { nodes, edges, totalFiles, capped, cappedAt }
  */
 function buildDependencyGraph(repoPath) {
   const allFiles = [];
-  walkSource(repoPath, repoPath, allFiles);
+  walkSource(repoPath, allFiles);
 
-  const nodes = [];   // { id, path, extension, importedByCount }
-  const edges = [];   // { source, target }
-  const nodeMap = new Map(); // relativePath → node index
+  // Map: relative path → node id
+  const fileNodeMap = new Map();
+  // Map: package/module name → node id (for external deps)
+  const externalNodeMap = new Map();
+  const nodes = [];
+  const edges = [];
 
-  // Register all source files as nodes
+  // Register all source files as internal nodes
   for (const filePath of allFiles) {
-    const rel = path.relative(repoPath, filePath).replace(/\\/g, '/');
+    const rel = path.relative(repoPath, filePath).replace(/\\/g, "/");
     const ext = path.extname(filePath);
-    const idx = nodes.length;
-    nodes.push({ id: idx, path: rel, extension: ext, importedByCount: 0 });
-    nodeMap.set(rel, idx);
+    const label = path.basename(filePath);
+    const id = nodes.length;
+    nodes.push({
+      id,
+      label,
+      path: rel,
+      extension: ext,
+      type: "internal",
+      importedByCount: 0,
+    });
+    fileNodeMap.set(rel, id);
   }
 
-  // Extract imports per file and build edges
+  // Helper: get or create an external node
+  function getOrCreateExternal(pkgName) {
+    if (externalNodeMap.has(pkgName)) return externalNodeMap.get(pkgName);
+    const id = nodes.length;
+    nodes.push({
+      id,
+      label: pkgName,
+      path: pkgName,
+      extension: "",
+      type: "external",
+      importedByCount: 0,
+    });
+    externalNodeMap.set(pkgName, id);
+    return id;
+  }
+
+  const edgeSet = new Set(); // prevent duplicate edges
+
+  function addEdge(sourceId, targetId) {
+    if (sourceId === targetId) return;
+    const key = `${sourceId}->${targetId}`;
+    if (edgeSet.has(key)) return;
+    edgeSet.add(key);
+    edges.push({ source: sourceId, target: targetId });
+    nodes[targetId].importedByCount++;
+  }
+
+  // Process each file and extract imports
   for (const filePath of allFiles) {
-    const rel = path.relative(repoPath, filePath).replace(/\\/g, '/');
-    const sourceIdx = nodeMap.get(rel);
+    const rel = path.relative(repoPath, filePath).replace(/\\/g, "/");
+    const sourceId = fileNodeMap.get(rel);
     const ext = path.extname(filePath);
 
-    let imports = [];
-    if (['.js', '.jsx', '.mjs', '.cjs'].includes(ext)) {
-      imports = extractImportsJS(filePath);
-    } else if (['.ts', '.tsx'].includes(ext)) {
-      imports = extractImportsTS(filePath);
-    } else if (ext === '.py') {
-      imports = extractImportsPython(filePath);
-    } else if (['.c', '.cpp', '.h', '.hpp'].includes(ext)) {
-      imports = extractImportsC(filePath);
+    let rawImports = [];
+    try {
+      if ([".js", ".jsx", ".ts", ".tsx", ".mjs", ".cjs"].includes(ext)) {
+        rawImports = extractImportsJS(filePath);
+      } else if (ext === ".py") {
+        rawImports = extractImportsPython(filePath);
+      } else if ([".c", ".cpp", ".h", ".hpp"].includes(ext)) {
+        rawImports = extractImportsC(filePath);
+      } else if (ext === ".java") {
+        rawImports = extractImportsJava(filePath);
+      } else if (ext === ".go") {
+        rawImports = extractImportsGo(filePath);
+      }
+    } catch (e) {
+      /* skip unreadable files */
     }
 
-    // Resolve each import to a node
-    for (const imp of imports) {
-      const resolved = resolveImport(imp, filePath, repoPath);
-      if (!resolved) continue;
-
-      const resolvedRel = path.relative(repoPath, resolved).replace(/\\/g, '/');
-      const targetIdx = nodeMap.get(resolvedRel);
-      if (targetIdx !== undefined && targetIdx !== sourceIdx) {
-        edges.push({ source: sourceIdx, target: targetIdx });
-        nodes[targetIdx].importedByCount++;
+    for (const imp of rawImports) {
+      // Try to resolve to a local file first
+      const resolvedRel = resolveToRelative(imp, filePath, repoPath);
+      if (resolvedRel && fileNodeMap.has(resolvedRel)) {
+        addEdge(sourceId, fileNodeMap.get(resolvedRel));
+      } else {
+        // It's an external package — normalize the name
+        const pkgName = normalizePackageName(imp, ext);
+        if (pkgName) {
+          const extId = getOrCreateExternal(pkgName);
+          addEdge(sourceId, extId);
+        }
       }
     }
   }
 
-  // Score and sort nodes by importedByCount descending
+  // Sort nodes by importedByCount DESC (most depended-on first)
   nodes.sort((a, b) => b.importedByCount - a.importedByCount);
 
-  // Re-index after sort
+  // Re-index nodes after sort
   const oldToNew = new Map();
-  nodes.forEach((n, i) => { oldToNew.set(n.id, i); n.id = i; });
+  nodes.forEach((n, i) => {
+    oldToNew.set(n.id, i);
+    n.id = i;
+  });
   for (const edge of edges) {
     edge.source = oldToNew.get(edge.source);
     edge.target = oldToNew.get(edge.target);
   }
 
-  // Cap at top 100 nodes for large repos
-  if (nodes.length > 100) {
-    const keep = new Set(nodes.slice(0, 100).map(n => n.id));
-    const filteredEdges = edges.filter(e => keep.has(e.source) && keep.has(e.target));
-    return { nodes: nodes.slice(0, 100), edges: filteredEdges, totalFiles: allFiles.length, capped: true };
+  // Keep only connected nodes (nodes that appear in at least one edge), cap at MAX
+  const connectedIds = new Set();
+  for (const edge of edges) {
+    connectedIds.add(edge.source);
+    connectedIds.add(edge.target);
   }
 
-  return { nodes, edges, totalFiles: allFiles.length, capped: false };
+  // Also keep high-importedByCount nodes even if isolated
+  const highImport = nodes
+    .filter((n) => n.importedByCount > 0)
+    .map((n) => n.id);
+  const priorityIds = new Set([...highImport, ...connectedIds]);
+
+  let keptNodes = nodes.filter((n) => priorityIds.has(n.id));
+  const capped = keptNodes.length > MAX_GRAPH_NODES;
+  if (capped) {
+    keptNodes = keptNodes.slice(0, MAX_GRAPH_NODES);
+  }
+
+  const keptSet = new Set(keptNodes.map((n) => n.id));
+  const filteredEdges = edges.filter(
+    (e) => keptSet.has(e.source) && keptSet.has(e.target),
+  );
+
+  return {
+    nodes: keptNodes,
+    edges: filteredEdges,
+    totalFiles: allFiles.length,
+    totalNodes: nodes.length,
+    capped,
+    cappedAt: MAX_GRAPH_NODES,
+  };
 }
 
+// ── Extractors ───────────────────────────────────────────────────────────────
+
 /**
- * extractImportsJS — use acorn to parse ES modules + CommonJS require()
+ * JS/TS: extract from `import ... from 'X'`, `require('X')`, dynamic `import('X')`
  */
 function extractImportsJS(filePath) {
+  const code = fs.readFileSync(filePath, "utf8");
   const imports = [];
-  try {
-    const code = fs.readFileSync(filePath, 'utf8');
-    const ast = acorn.parse(code, {
-      sourceType: 'module',
-      ecmaVersion: 'latest',
-      allowHashBang: true,
-      allowImportExportEverywhere: true,
-      allowReturnOutsideFunction: true
-    });
 
-    for (const node of ast.body) {
-      // import ... from 'xxx'
-      if (node.type === 'ImportDeclaration' && node.source && node.source.value) {
-        imports.push(node.source.value);
-      }
+  // Static ES imports: import ... from 'X'
+  const esStatic = /\bimport\b[\s\S]*?\bfrom\b\s*['"`]([^'"`]+)['"`]/g;
+  let m;
+  while ((m = esStatic.exec(code)) !== null) imports.push(m[1]);
 
-      // const x = require('xxx')
-      if (node.type === 'VariableDeclaration') {
-        for (const decl of node.declarations) {
-          if (decl.init && decl.init.type === 'CallExpression' &&
-              decl.init.callee && decl.init.callee.name === 'require' &&
-              decl.init.arguments.length > 0 && decl.init.arguments[0].type === 'Literal') {
-            imports.push(decl.init.arguments[0].value);
-          }
-        }
-      }
+  // Side-effect imports: import 'X'
+  const esSide = /\bimport\s+['"`]([^'"`]+)['"`]/g;
+  while ((m = esSide.exec(code)) !== null) imports.push(m[1]);
 
-      // module.exports = require('xxx') or standalone require calls
-      if (node.type === 'ExpressionStatement' && node.expression) {
-        findRequireCalls(node.expression, imports);
-      }
-    }
-  } catch (e) {
-    // Fallback to regex if acorn parse fails (e.g., JSX, Flow)
-    return extractImportsRegex(filePath);
-  }
+  // Dynamic imports: import('X')
+  const esDyn = /\bimport\s*\(\s*['"`]([^'"`]+)['"`]\s*\)/g;
+  while ((m = esDyn.exec(code)) !== null) imports.push(m[1]);
+
+  // CommonJS: require('X')
+  const cjs = /\brequire\s*\(\s*['"`]([^'"`]+)['"`]\s*\)/g;
+  while ((m = cjs.exec(code)) !== null) imports.push(m[1]);
+
   return imports;
 }
 
 /**
- * extractImportsTS — regex fallback for TypeScript (acorn doesn't parse TS)
- */
-function extractImportsTS(filePath) {
-  return extractImportsRegex(filePath);
-}
-
-/**
- * Regex-based import extractor (fallback for TS/JSX)
- */
-function extractImportsRegex(filePath) {
-  const imports = [];
-  try {
-    const code = fs.readFileSync(filePath, 'utf8');
-
-    // ES imports
-    const esPattern = /import\s+.*?\s+from\s+['"](.+?)['"]/g;
-    let m;
-    while ((m = esPattern.exec(code)) !== null) imports.push(m[1]);
-
-    // Dynamic imports
-    const dynPattern = /import\s*\(\s*['"](.+?)['"]\s*\)/g;
-    while ((m = dynPattern.exec(code)) !== null) imports.push(m[1]);
-
-    // CommonJS requires
-    const cjsPattern = /require\s*\(\s*['"](.+?)['"]\s*\)/g;
-    while ((m = cjsPattern.exec(code)) !== null) imports.push(m[1]);
-  } catch (e) { /* unreadable */ }
-  return imports;
-}
-
-/**
- * extractImportsPython — regex on import/from statements
+ * Python: `import X`, `from X import Y`
  */
 function extractImportsPython(filePath) {
+  const code = fs.readFileSync(filePath, "utf8");
   const imports = [];
-  try {
-    const code = fs.readFileSync(filePath, 'utf8');
-    const lines = code.split('\n');
+  const lines = code.split("\n");
 
-    for (const line of lines) {
-      const trimmed = line.trim();
-      if (trimmed.startsWith('#')) continue;
+  for (const line of lines) {
+    const trimmed = line.trim();
+    if (trimmed.startsWith("#")) continue;
 
-      // from .module import x  OR  from module import x
-      const fromMatch = trimmed.match(/^from\s+(\.+\S*|\S+)\s+import/);
-      if (fromMatch) {
-        imports.push(fromMatch[1]);
-        continue;
-      }
-
-      // import module
-      const impMatch = trimmed.match(/^import\s+(\S+)/);
-      if (impMatch) {
-        imports.push(impMatch[1].split(',')[0].trim());
-      }
+    // from X import Y  or  from .X import Y
+    const fromMatch = trimmed.match(/^from\s+([\.\w]+)\s+import/);
+    if (fromMatch) {
+      imports.push(fromMatch[1]);
+      continue;
     }
-  } catch (e) { /* unreadable */ }
+
+    // import X, Y, Z
+    const impMatch = trimmed.match(/^import\s+(.+)/);
+    if (impMatch) {
+      impMatch[1].split(",").forEach((s) => {
+        const name = s
+          .trim()
+          .split(/\s+as\s+/)[0]
+          .trim();
+        if (name) imports.push(name);
+      });
+    }
+  }
   return imports;
 }
 
 /**
- * extractImportsC — regex on local #include statements
+ * C/C++: #include "local.h" and #include <sys.h>
  */
 function extractImportsC(filePath) {
+  const code = fs.readFileSync(filePath, "utf8");
   const imports = [];
-  try {
-    const code = fs.readFileSync(filePath, 'utf8');
-    const cPattern = /#include\s+["'](.+?)["']/g;
-    let m;
-    while ((m = cPattern.exec(code)) !== null) imports.push(m[1]);
-  } catch (e) { /* unreadable */ }
+  // Local includes with quotes — more likely to resolve
+  const localPat = /#include\s+"([^"]+)"/g;
+  let m;
+  while ((m = localPat.exec(code)) !== null) imports.push(m[1]);
+  // System includes with angle brackets — treat as external
+  const sysPat = /#include\s+<([^>]+)>/g;
+  while ((m = sysPat.exec(code)) !== null) imports.push(m[1]);
   return imports;
 }
 
-// ── Helpers ──
-
-function findRequireCalls(node, imports) {
-  if (!node || typeof node !== 'object') return;
-  if (node.type === 'CallExpression' && node.callee &&
-      node.callee.name === 'require' &&
-      node.arguments.length > 0 && node.arguments[0].type === 'Literal') {
-    imports.push(node.arguments[0].value);
-  }
-  // Recurse into assignment right-hand side
-  if (node.right) findRequireCalls(node.right, imports);
-  if (node.arguments) node.arguments.forEach(a => findRequireCalls(a, imports));
+/**
+ * Java: import com.example.Foo
+ */
+function extractImportsJava(filePath) {
+  const code = fs.readFileSync(filePath, "utf8");
+  const imports = [];
+  const pat = /^\s*import\s+(static\s+)?([\w\.]+)\s*;/gm;
+  let m;
+  while ((m = pat.exec(code)) !== null) imports.push(m[2]);
+  return imports;
 }
 
-function resolveImport(importPath, sourceFile, repoPath) {
-  const ext = path.extname(sourceFile);
-  const isC = ['.c', '.cpp', '.h', '.hpp'].includes(ext);
-
-  // Only resolve relative imports (skip npm packages)
-  if (!importPath.startsWith('.') && !importPath.startsWith('/')) {
-    if (ext === '.py' && importPath.startsWith('.')) {
-      // Handle Python relative imports
-    } else if (isC) {
-      // Allow C/C++ includes (e.g. nvim/api.h)
-    } else {
-      return null;
-    }
+/**
+ * Go: import "pkg" or import ( "pkg1" \n "pkg2" )
+ */
+function extractImportsGo(filePath) {
+  const code = fs.readFileSync(filePath, "utf8");
+  const imports = [];
+  const pat = /["'`]([^"'`\s]+)["'`]/g;
+  // Only look inside import blocks
+  const importBlock =
+    code.match(/\bimport\s*\([\s\S]*?\)|\bimport\s+"[^"]+"/g) || [];
+  for (const block of importBlock) {
+    let m;
+    while ((m = pat.exec(block)) !== null) imports.push(m[1]);
   }
+  return imports;
+}
 
+// ── Resolver ─────────────────────────────────────────────────────────────────
+
+const EXTENSIONS_TO_TRY = [
+  "",
+  ".js",
+  ".jsx",
+  ".ts",
+  ".tsx",
+  ".mjs",
+  ".cjs",
+  ".py",
+  ".c",
+  ".cpp",
+  ".h",
+  ".hpp",
+  ".java",
+  ".go",
+];
+
+/**
+ * Try to resolve an import string to a relative repo path.
+ * Returns null if it can't be resolved to a file in the repo.
+ */
+function resolveToRelative(importPath, sourceFile, repoPath) {
   const sourceDir = path.dirname(sourceFile);
-  
-  // Potential resolution base paths for C/C++
-  const bases = [sourceDir];
-  if (isC) {
-    bases.push(repoPath);
-    bases.push(path.join(repoPath, 'src'));
-    bases.push(path.join(repoPath, 'include'));
+  const ext = path.extname(sourceFile);
+
+  // Python relative imports (.module, ..module)
+  if (ext === ".py" && importPath.startsWith(".")) {
+    const cleaned = importPath.replace(/^\.+/, "").replace(/\./g, "/");
+    return tryResolve(cleaned, sourceDir, repoPath);
   }
 
-  const tryExts = ['.js', '.jsx', '.ts', '.tsx', '.mjs', '.cjs', '.py', '.c', '.cpp', '.h', '.hpp', ''];
+  // JS/TS relative
+  if (importPath.startsWith("./") || importPath.startsWith("../")) {
+    return tryResolve(importPath, sourceDir, repoPath);
+  }
 
-  for (const base of bases) {
-    let resolved = path.resolve(base, importPath);
-    for (const tryExt of tryExts) {
-      const tryPath = resolved + tryExt;
-      if (fs.existsSync(tryPath) && fs.statSync(tryPath).isFile()) {
-        return tryPath;
-      }
+  // C/C++ includes with quotes are relative to source dir
+  if ([".c", ".cpp", ".h", ".hpp"].includes(ext)) {
+    const bases = [
+      sourceDir,
+      repoPath,
+      path.join(repoPath, "src"),
+      path.join(repoPath, "include"),
+    ];
+    for (const base of bases) {
+      const r = tryResolve(importPath, base, repoPath);
+      if (r) return r;
+    }
+    return null;
+  }
+
+  return null; // All other non-relative = external
+}
+
+function tryResolve(importPath, fromDir, repoPath) {
+  const base = path.resolve(fromDir, importPath);
+
+  for (const ext of EXTENSIONS_TO_TRY) {
+    const candidate = base + ext;
+    if (fs.existsSync(candidate) && fs.statSync(candidate).isFile()) {
+      const rel = path.relative(repoPath, candidate).replace(/\\/g, "/");
+      return rel;
     }
   }
 
-  // Try index files in directory (fallback to sourceDir base)
-  let resolvedBase = path.resolve(sourceDir, importPath);
-  const indexFiles = ['index.js', 'index.ts', 'index.jsx', 'index.tsx', '__init__.py'];
+  // Try as a directory with index file
+  const indexFiles = [
+    "index.js",
+    "index.ts",
+    "index.jsx",
+    "index.tsx",
+    "__init__.py",
+  ];
   for (const idx of indexFiles) {
-    const tryPath = path.join(resolvedBase, idx);
-    if (fs.existsSync(tryPath)) return tryPath;
+    const candidate = path.join(base, idx);
+    if (fs.existsSync(candidate)) {
+      const rel = path.relative(repoPath, candidate).replace(/\\/g, "/");
+      return rel;
+    }
   }
 
   return null;
 }
 
-function walkSource(dir, repoPath, results) {
+/**
+ * Normalize external package name to a clean label.
+ * Returns null to skip meaningless/empty names.
+ */
+function normalizePackageName(importStr, srcExt) {
+  if (!importStr || importStr.length === 0) return null;
+
+  // Skip internal-looking things
+  if (importStr.startsWith(".")) return null;
+  if (importStr.startsWith("/")) return null;
+
+  let name = importStr.trim();
+
+  // JS: scoped packages @org/pkg → keep full; others → first segment
+  if ([".js", ".jsx", ".ts", ".tsx", ".mjs", ".cjs"].includes(srcExt)) {
+    if (name.startsWith("@")) {
+      // @org/pkg → @org/pkg
+      const parts = name.split("/");
+      name = parts.slice(0, 2).join("/");
+    } else {
+      name = name.split("/")[0];
+    }
+  }
+
+  // Python: dotted module → top-level package
+  if (srcExt === ".py") {
+    name = name.split(".")[0];
+    if (!name || name.match(/^\d/)) return null;
+  }
+
+  // Java: com.example.Class → com.example (top 2 parts)
+  if (srcExt === ".java") {
+    const parts = name.split(".");
+    name = parts.slice(0, Math.min(2, parts.length)).join(".");
+  }
+
+  // Go: strip version suffix gopkg.in/X.v2 → X
+  if (srcExt === ".go") {
+    const parts = name.split("/");
+    name = parts[parts.length - 1].replace(/\.v\d+$/, "");
+    if (parts.length > 1 && !parts[0].includes(".")) return null; // skip stdlib
+  }
+
+  // C/C++: <stdio.h> → stdio (external)
+  if ([".c", ".cpp", ".h", ".hpp"].includes(srcExt)) {
+    name = name.replace(/\.(h|hpp)$/, "");
+    // skip system paths like sys/types
+    name = name.split("/").pop();
+  }
+
+  // Skip empty, numeric-only, or very short noise
+  if (!name || name.length < 2 || /^\d+$/.test(name)) return null;
+
+  return name;
+}
+
+// ── Walker ────────────────────────────────────────────────────────────────────
+
+function walkSource(dir, results) {
   try {
     const entries = fs.readdirSync(dir, { withFileTypes: true });
     for (const entry of entries) {
       if (entry.isDirectory()) {
         if (IGNORE_DIRS.has(entry.name)) continue;
-        walkSource(path.join(dir, entry.name), repoPath, results);
+        walkSource(path.join(dir, entry.name), results);
       } else {
         const ext = path.extname(entry.name);
         if (SOURCE_EXTENSIONS.has(ext)) {
@@ -282,7 +454,9 @@ function walkSource(dir, repoPath, results) {
         }
       }
     }
-  } catch (e) { /* permission error */ }
+  } catch (e) {
+    /* permission error */
+  }
 }
 
 module.exports = { buildDependencyGraph };
